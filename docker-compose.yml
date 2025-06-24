@@ -1,0 +1,6 @@
+include:
+  - module.docker-compose.yml
+  - services.docker-compose.yml
+  - backend.docker-compose.yml
+
+  

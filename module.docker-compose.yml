@@ -1,0 +1,221 @@
+x-defaultcontainer: &defaultcontainer
+  restart: unless-stopped
+  logging:
+    driver: "${LOG_SERVICE_DRIVER:-json-file}"
+    options:
+      max-size: "${LOG_SERVICE_SIZE:-10m}"
+      max-file: "${LOG_SERVICE_FILES:-3}"
+  volumes:
+      - &etcCerts "/etc/ssl/certs:/etc/ssl/certs:ro"
+  environment: &defaultEnv
+    TZ: "${TIMEZONE}"
+    LANG: "${LANGUAGE}"
+
+x-prjSvcEnv: &prjSvcEnv
+  PROJECT_SERVICE: "http://io-service-project:30002"
+  UPLOAD_TOKEN: "${TOKEN_MASTER}"
+
+x-healthcheckTrue: &healthcheckTrue
+  healthcheck: &defaultHealthCheck
+    test: ["CMD-SHELL", "exit 0"]
+    start_period: 3s
+    interval: 5s
+    timeout: 3s
+    retries: 5
+
+x-modDefaultContainer: &moddefaultContainer
+  <<: [*defaultcontainer,*healthcheckTrue]
+  environment:
+    <<: [*defaultEnv,*prjSvcEnv]
+  depends_on:
+    io-service-project:
+      condition: service_healthy
+
+x-modGodefaultContainer: &modGodefaultContainer
+  <<: [*moddefaultContainer]
+  healthcheck:
+    disable: true
+
+x-FileImportVols: &fileImportVolumes
+  volumes:
+    - *etcCerts
+    - "/aw/imports:/imports"
+
+x-srvAmqpEnv: &srvAmqpEnv
+  SERVICE__MESSAGE_QUEUE__TYPE: "RabbitMQ"
+  SERVICE__MESSAGE_QUEUE__ADDRESS: "${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}672"
+  SERVICE__MESSAGE_QUEUE__USERNAME: "${RABBITMQ_DEFAULT_USER}"
+  SERVICE__MESSAGE_QUEUE__PASSWORD: "${RABBITMQ_DEFAULT_PASS}"
+
+x-amqpEnv: &amqpEnv
+  AMQP_SERVER: "${AMQP_SERVER}"
+  AMQP_PORT: "${AMQP_PORT}"
+  AMQP_USER: "${RABBITMQ_DEFAULT_USER}"
+  AMQP_PASS: "${RABBITMQ_DEFAULT_PASS}"
+
+x-publicAmqpEnv: &publicAmqpEnv
+  PUBLIC_AMQP_SERVER: "${EXTERNALADDRESS}"
+  PUBLIC_AMQP_PORT: "${INSTANCE_PORT_PREFIX}672"
+  PUBLIC_AMQP_USER: "${RABBITMQ_DEFAULT_USER}"
+  PUBLIC_AMQP_PASS: "${RABBITMQ_DEFAULT_PASS}"
+
+
+
+services:
+#Modul: io-module-cache
+  io-module-cache:
+    <<: [*modGodefaultContainer]
+    image: "actiwareio/io-module-cache:${VERSION_TAG_IO_MODULE_CACHE:-1-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}117:30117"
+
+#Modul: io-module-comm
+  io-module-comm:
+    <<: [*moddefaultContainer]
+    image: "actiwareio/io-module-communication:${VERSION_TAG_IO_MODULE_COMMUNICATION:-1-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}120:30120"
+
+#Modul: io-module-compression
+  io-module-compression:
+    <<: [*modGodefaultContainer]
+    image: "actiwareio/io-module-compression:${VERSION_TAG_IO_MODULE_COMPRESSION:-1-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}104:30104"
+
+#Modul: io-module-core
+  io-module-core:
+    <<: [*moddefaultContainer,*fileImportVolumes]
+    image: "actiwareio/io-module-core:${VERSION_TAG_IO_MODULE_CORE:-1-latest}"
+    volumes:
+      - *etcCerts
+      - "/aw/imports:/imports"
+    environment:
+      <<: [*defaultEnv,*prjSvcEnv]
+      MAX_FILES: 10
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}102:30102"
+
+#Modul: io-module-elo
+  io-module-elo:
+    <<: [*moddefaultContainer,*fileImportVolumes]
+    image: "actiwareio/io-module-elo:${VERSION_TAG_IO_MODULE_ELO:-1-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}109:30109" 
+
+#Modul: io-module-opcua
+  io-module-opcua:
+    <<: [*moddefaultContainer]
+    image: "actiwareio/io-module-opcua:${VERSION_TAG_IO_MODULE_OPCUA:-1-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}115:80"
+
+#Modul: io-module-s3
+  io-module-s3:
+    <<: [*moddefaultContainer]
+    image: "actiwareio/io-module-s3:${VERSION_TAG_IO_MODULE_S3:-prerelease-2.0.0}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}122:30122"
+
+#Modul: io-module-solr
+  io-module-solr:
+    <<: [*modGodefaultContainer]
+    image: "actiwareio/io-module-solr:${VERSION_TAG_IO_MODULE_SOLR:-1-latest}"
+    environment:
+      <<: [*defaultEnv,*amqpEnv,*prjSvcEnv]
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}106:30106"
+
+#Modul: io-module-math
+  io-module-math:
+    <<: [*modGodefaultContainer]
+    image: "actiwareio/io-module-math:${VERSION_TAG_IO_MODULE_MATH:-1-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}125:30125"
+
+#Modul: io-module-systems
+  io-module-systems:
+    <<: [*moddefaultContainer]
+    image: "actiwareio/io-module-systems:${VERSION_TAG_IO_MODULE_SYSTEMS:-2-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}110:30110"
+
+#Modul: io-module-pdf-processor
+  io-module-pdf-processor:
+    <<: [*moddefaultContainer,*fileImportVolumes]
+    image: "actiwareio/io-module-pdf-processor:${VERSION_TAG_IO_MODULE_PDFPROCESSOR:-1-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}126:30126"
+
+#Modul: io-module-mailserv
+  io-module-mailserv:
+    <<: [*moddefaultContainer,*fileImportVolumes]
+    image: "actiwareio/io-module-mailserv:${VERSION_TAG_IO_MODULE_MAILSERV:-1-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}118:30118"
+      
+#Modul: io-module-odata
+  io-module-odata:
+    <<: [*moddefaultContainer]
+    image: "actiwareio/io-module-odata:${VERSION_TAG_IO_MODULE_ODATA:-1-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}129:30129"
+  
+#Modul: io-module-office
+  io-module-office:
+    <<: [*moddefaultContainer]
+    image: "actiwareio/io-module-office:${VERSION_TAG_IO_MODULE_OFFICE:-1-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}119:30119"
+
+#Modul: io-module-office365
+  io-module-office365:
+    <<: [*moddefaultContainer]
+    image: "actiwareio/io-module-office365:${VERSION_TAG_IO_MODULE_OFFICE365:-1-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}111:30111"
+
+#Modul: io-module-utils
+  io-module-utils:
+    <<: [*moddefaultContainer]
+    image: "actiwareio/io-module-utils:${VERSION_TAG_IO_MODULE_UTILS:-1-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}128:30128"
+
+#Modul: io-module-salesforce
+  io-module-salesforce:
+    <<: [*moddefaultContainer]
+    image: "actiwareio/io-module-salesforce:${VERSION_TAG_IO_MODULE_SALESFORCE:-1-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}124:30124"
+
+#Modul: io-module-object-storage
+  io-module-object-storage:
+    <<: [*moddefaultContainer]
+    image: "actiwareio/io-module-object-storage:${VERSION_TAG_IO_MODULE_OBJECT_STORAGE:-2-nightly}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}105:30105"
+
+#Modul: io-module-dataconnect
+  io-module-dataconnect:
+    <<: [*moddefaultContainer]
+    image: "actiwareio/io-module-dataconnect:${VERSION_TAG_IO_MODULE_DATACONNECT:-2-latest}"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}108:30108"
+
+#Modul: io-module-barcode
+  io-module-barcode:
+    <<: [*moddefaultContainer,*fileImportVolumes]
+    image: "actiwareio/io-module-barcode:${VERSION_TAG_IO_MODULE_BARCODE:-2-latest}"
+    volumes:
+      - *etcCerts
+      - "/aw/imports:/imports"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}112:30112"
+
+#Modul: io-module-output-manager
+  io-module-output-manager:
+    <<: [*moddefaultContainer]
+    image: "actiwareio/io-module-output-manager:${VERSION_TAG_IO_MODULE_OUTPUT_MANAGER:-2-latest}"
+#     ports:
+#       - "${INSTANCE_PORT_PREFIX}134:30134"

@@ -1,0 +1,169 @@
+x-defaultcontainer: &defaultcontainer
+  restart: unless-stopped
+  logging:
+    driver: "${LOG_SERVICE_DRIVER:-json-file}"
+    options:
+      max-size: "${LOG_SERVICE_SIZE:-10m}"
+      max-file: "${LOG_SERVICE_FILES:-3}"
+  volumes:
+      - &etcCerts "/etc/ssl/certs:/etc/ssl/certs:ro"
+  environment: &defaultEnv
+    TZ: "${TIMEZONE}"
+    LANG: "${LANGUAGE}"
+
+x-prjSvcEnv: &prjSvcEnv
+  PROJECT_SERVICE: "http://io-service-project:30002"
+  UPLOAD_TOKEN: "${TOKEN_MASTER}"
+
+x-healthcheckTrue: &healthcheckTrue
+  healthcheck: &defaultHealthCheck
+    test: ["CMD-SHELL", "exit 0"]
+    start_period: 3s
+    interval: 5s
+    timeout: 3s
+    retries: 5
+
+services:
+#Backend: proxy
+  proxy:
+    <<: *defaultcontainer
+    image: "httpd:latest"
+    environment:
+      <<: *defaultEnv
+    ports:
+      # Backend
+      - "${INSTANCE_PORT_PREFIX}001:30001" #Service: io-service-auth
+      - "${INSTANCE_PORT_PREFIX}002:30002" #Service: io-service-project
+      - "${INSTANCE_PORT_PREFIX}003:30003" #Service: io-service-process
+      - "${INSTANCE_PORT_PREFIX}004:30004" #Backend: solr
+      - "${INSTANCE_PORT_PREFIX}009:30009" #Service: io-service-client
+      - "${INSTANCE_PORT_PREFIX}010:30010" #Service: io-service-storage
+      - "${INSTANCE_PORT_PREFIX}011:30011" #Service: io-service-report
+      - "${INSTANCE_PORT_PREFIX}018:30018" #Service: io-service-ocr
+      - "${INSTANCE_PORT_PREFIX}674:15674" #Backend: rabbitmq: WS
+
+      # Client
+      - ${INSTANCE_PORT_PREFIX}201:30201   #Client: io-client-designer
+      - ${INSTANCE_PORT_PREFIX}202:30202   #Client: io-client-client
+
+      # Modules
+      - "${INSTANCE_PORT_PREFIX}102:30102" #Modul: io-module-core
+      - "${INSTANCE_PORT_PREFIX}104:30104" #Modul: io-module-compression
+      - "${INSTANCE_PORT_PREFIX}105:30105" #Modul: io-module-object-storage
+      - "${INSTANCE_PORT_PREFIX}106:30106" #Modul: io-module-solr
+      - "${INSTANCE_PORT_PREFIX}108:30108" #Modul: io-module-dataconnect
+      - "${INSTANCE_PORT_PREFIX}109:30109" #Modul: io-module-elo
+      - "${INSTANCE_PORT_PREFIX}110:30110" #Modul: io-module-systems
+      - "${INSTANCE_PORT_PREFIX}111:30111" #Modul: io-module-office365
+      - "${INSTANCE_PORT_PREFIX}112:30112" #Modul: io-module-barcode
+      - "${INSTANCE_PORT_PREFIX}115:30115" #Modul: io-module-opcua
+      - "${INSTANCE_PORT_PREFIX}117:30117" #Modul: io-module-cache
+      - "${INSTANCE_PORT_PREFIX}118:30118" #Modul: io-module-mailserv
+      - "${INSTANCE_PORT_PREFIX}119:30119" #Modul: io-module-office
+      - "${INSTANCE_PORT_PREFIX}120:30120" #Modul: io-module-comm
+      - "${INSTANCE_PORT_PREFIX}122:30122" #Modul: io-module-s3
+      - "${INSTANCE_PORT_PREFIX}124:30124" #Modul: io-module-salesforce
+      - "${INSTANCE_PORT_PREFIX}125:30125" #Modul: io-module-math
+      - "${INSTANCE_PORT_PREFIX}126:30126" #Modul: io-module-pdf-processor
+      - "${INSTANCE_PORT_PREFIX}128:30128" #Modul: io-module-utils
+      - "${INSTANCE_PORT_PREFIX}129:30129" #Modul: io-module-odata
+      - "${INSTANCE_PORT_PREFIX}134:30134" #Modul: io-module-output-manger
+
+    volumes:
+      - ./proxy/${INSTANCE_HTTP_TYPE:-http}-httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./certs:/certs
+
+#Backend: postgres
+  postgres:
+    <<: [*defaultcontainer]
+
+    image: "postgres:${VERSION_TAG_IO_BACKEND_POSTGRES:-13}"
+    environment:
+      TZ: "${TIMEZONE}"
+      LANG: "${LANG_POSTGRES}"
+      POSTGRES_USER: "${DATABASE_USER}"
+      POSTGRES_PASSWORD: "${DATABASE_PASS}"
+    volumes:
+      - "postgresdata:/var/lib/postgresql/data"
+    healthcheck:
+      <<: [*defaultHealthCheck]
+      test: ["CMD", "pg_isready", "--username=${DATABASE_USER}"]
+    ports:
+      - "${INSTANCE_PORT_PREFIX}432:5432"
+
+#Backend: rabbitmq
+  rabbitmq:
+    <<: [*defaultcontainer]
+    image: "rabbitmq:${VERSION_TAG_IO_BACKEND_RABBITMQ:-3}"
+    command: bash -c "rabbitmq-plugins enable rabbitmq_stomp && rabbitmq-plugins enable rabbitmq_web_stomp && rabbitmq-server"
+    environment:
+      TZ: ${TIMEZONE}
+      LANG: ${LANGUAGE}
+      RABBITMQ_DEFAULT_USER: "${RABBITMQ_DEFAULT_USER}"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_DEFAULT_PASS}"
+    volumes:
+      - "rabbitmq:/var/lib/rabbitmq"
+    healthcheck:
+      <<: [*defaultHealthCheck]
+      test: rabbitmq-diagnostics -q ping
+    ports:
+      - "${INSTANCE_PORT_PREFIX}671:5671"
+      - "${INSTANCE_PORT_PREFIX}672:5672"
+
+#Backend: solr
+  solr:
+    <<: [*defaultcontainer]
+    image: "solr:${VERSION_TAG_IO_BACKEND_SOLR:-9}"
+    command:
+      - bash
+      - "-c"
+      - precreate-core objects; precreate-core iotcore; precreate-core reports; precreate-core ecm; exec solr -f
+    environment:
+      TZ: "${TIMEZONE}"
+      LANG: "${LANGUAGE}"
+      SOLR_AUTH_TYPE: basic
+      SOLR_AUTHENTICATION_OPTS: "-Dbasicauth=${SOLR_USER}:${SOLR_PASS}"
+      # Siehe https://github.com/apache/lucene-solr/pull/2304/files
+      SOLR_OPTS: "-XX:-UseLargePages"
+    healthcheck:
+      <<: [*defaultHealthCheck]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://localhost:8983/solr/reports/admin/ping?wt=json",
+        ]
+    volumes:
+      - "solrdata:/var/solr"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}004:8983"
+
+#Service: minio
+  minio:
+    <<: [*defaultcontainer]
+    image: "minio/minio:${VERSION_TAG_IO_SERVICE_MINIO:-latest}"
+    volumes:
+      - "miniodata:/data"
+    environment:
+      TZ: "${TIMEZONE}"
+      LANG: "${LANGUAGE}"
+      MINIO_ROOT_USER: "${MINIO_ACCESS_KEY}"
+      MINIO_ROOT_PASSWORD: "${MINIO_SECRET_KEY}"
+    command: server --console-address ":${INSTANCE_PORT_PREFIX}901" /data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    ports:
+      - "${INSTANCE_PORT_PREFIX}900:9000"
+      - '${INSTANCE_PORT_PREFIX}901:${INSTANCE_PORT_PREFIX}901'
+      
+volumes:
+  rabbitmq:
+    driver: local
+  solrdata:
+    driver: local
+  miniodata:
+    driver: local
+  postgresdata:
+    driver: local
