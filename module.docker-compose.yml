@@ -165,43 +165,31 @@ services:
   io-module-office:
     <<: [*moddefaultContainer]
     image: "actiwareio/io-module-office:${VERSION_TAG_IO_MODULE_OFFICE:-1-latest}"
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}119:30119"
 
 #Modul: io-module-office365
   io-module-office365:
     <<: [*moddefaultContainer]
     image: "actiwareio/io-module-office365:${VERSION_TAG_IO_MODULE_OFFICE365:-1-latest}"
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}111:30111"
 
 #Modul: io-module-utils
   io-module-utils:
     <<: [*moddefaultContainer]
     image: "actiwareio/io-module-utils:${VERSION_TAG_IO_MODULE_UTILS:-1-latest}"
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}128:30128"
 
 #Modul: io-module-salesforce
   io-module-salesforce:
     <<: [*moddefaultContainer]
     image: "actiwareio/io-module-salesforce:${VERSION_TAG_IO_MODULE_SALESFORCE:-1-latest}"
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}124:30124"
 
 #Modul: io-module-object-storage
   io-module-object-storage:
     <<: [*moddefaultContainer]
     image: "actiwareio/io-module-object-storage:${VERSION_TAG_IO_MODULE_OBJECT_STORAGE:-2-nightly}"
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}105:30105"
 
 #Modul: io-module-dataconnect
   io-module-dataconnect:
     <<: [*moddefaultContainer]
     image: "actiwareio/io-module-dataconnect:${VERSION_TAG_IO_MODULE_DATACONNECT:-2-latest}"
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}108:30108"
 
 #Modul: io-module-barcode
   io-module-barcode:
@@ -210,12 +198,8 @@ services:
     volumes:
       - *etcCerts
       - "/aw/imports:/imports"
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}112:30112"
 
 #Modul: io-module-output-manager
   io-module-output-manager:
     <<: [*moddefaultContainer]
     image: "actiwareio/io-module-output-manager:${VERSION_TAG_IO_MODULE_OUTPUT_MANAGER:-2-latest}"
-#     ports:
-#       - "${INSTANCE_PORT_PREFIX}134:30134"
