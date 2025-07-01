@@ -23,6 +23,38 @@ x-healthcheckTrue: &healthcheckTrue
     timeout: 3s
     retries: 5
 
+x-modDefaultContainer: &moddefaultContainer
+  <<: [*defaultcontainer,*healthcheckTrue]
+  environment:
+    <<: [*defaultEnv,*prjSvcEnv]
+  depends_on:
+    io-service-project:
+      condition: service_healthy
+
+x-modGodefaultContainer: &modGodefaultContainer
+  <<: [*moddefaultContainer]
+  healthcheck:
+    disable: true
+
+x-srvAmqpEnv: &srvAmqpEnv
+  SERVICE__MESSAGE_QUEUE__TYPE: "RabbitMQ"
+  SERVICE__MESSAGE_QUEUE__ADDRESS: "${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}672"
+  SERVICE__MESSAGE_QUEUE__USERNAME: "${RABBITMQ_DEFAULT_USER}"
+  SERVICE__MESSAGE_QUEUE__PASSWORD: "${RABBITMQ_DEFAULT_PASS}"
+
+x-amqpEnv: &amqpEnv
+  AMQP_SERVER: "${AMQP_SERVER}"
+  AMQP_PORT: "${AMQP_PORT}"
+  AMQP_USER: "${RABBITMQ_DEFAULT_USER}"
+  AMQP_PASS: "${RABBITMQ_DEFAULT_PASS}"
+
+x-publicAmqpEnv: &publicAmqpEnv
+  PUBLIC_AMQP_SERVER: "${EXTERNALADDRESS}"
+  PUBLIC_AMQP_PORT: "${INSTANCE_PORT_PREFIX}672"
+  PUBLIC_AMQP_USER: "${RABBITMQ_DEFAULT_USER}"
+  PUBLIC_AMQP_PASS: "${RABBITMQ_DEFAULT_PASS}"
+
+
 services:
 #Backend: proxy
   proxy:
@@ -32,7 +64,7 @@ services:
       <<: *defaultEnv
     ports:
       # Backend
-      - "${INSTANCE_PORT_PREFIX}001:30001" #Service: io-service-auth
+      - "${INSTANCE_PORT_PREFIX}001:30001" #Service: io-service-identity
       - "${INSTANCE_PORT_PREFIX}002:30002" #Service: io-service-project
       - "${INSTANCE_PORT_PREFIX}003:30003" #Service: io-service-process
       - "${INSTANCE_PORT_PREFIX}004:30004" #Backend: solr
@@ -117,7 +149,7 @@ services:
     command:
       - bash
       - "-c"
-      - precreate-core objects; precreate-core iotcore; precreate-core reports; precreate-core ecm; exec solr -f
+      - precreate-core objects; precreate-core reports; exec solr -f
     environment:
       TZ: "${TIMEZONE}"
       LANG: "${LANGUAGE}"
@@ -134,6 +166,8 @@ services:
         ]
     volumes:
       - "solrdata:/var/solr"
+#    ports:
+#      - "${INSTANCE_PORT_PREFIX}004:8983"
 
 #Service: minio
   minio:

@@ -113,7 +113,7 @@ services:
 #Modul: io-module-s3
   io-module-s3:
     <<: [*moddefaultContainer]
-    image: "actiwareio/io-module-s3:${VERSION_TAG_IO_MODULE_S3:-prerelease-2.0.0}"
+    image: "actiwareio/io-module-s3:${VERSION_TAG_IO_MODULE_S3:-2-latest}"
 #    ports:
 #      - "${INSTANCE_PORT_PREFIX}122:30122"
 
@@ -125,13 +125,6 @@ services:
       <<: [*defaultEnv,*amqpEnv,*prjSvcEnv]
 #    ports:
 #      - "${INSTANCE_PORT_PREFIX}106:30106"
-
-#Modul: io-module-math
-  io-module-math:
-    <<: [*modGodefaultContainer]
-    image: "actiwareio/io-module-math:${VERSION_TAG_IO_MODULE_MATH:-1-latest}"
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}125:30125"
 
 #Modul: io-module-systems
   io-module-systems:
@@ -184,7 +177,7 @@ services:
 #Modul: io-module-object-storage
   io-module-object-storage:
     <<: [*moddefaultContainer]
-    image: "actiwareio/io-module-object-storage:${VERSION_TAG_IO_MODULE_OBJECT_STORAGE:-2-nightly}"
+    image: "actiwareio/io-module-object-storage:${VERSION_TAG_IO_MODULE_OBJECT_STORAGE:-2-latest}"
 
 #Modul: io-module-dataconnect
   io-module-dataconnect:

@@ -46,90 +46,9 @@ x-srvDbEnv: &srvDbEnv
   SERVICE__DATABASE__ENCODING: "${DATABASE_ENCODING}"
 
 services:
-#Backend: postgres
-  postgres:
-    <<: [*defaultcontainer]
-    image: "postgres:${VERSION_TAG_IO_BACKEND_POSTGRES:-13}"
-    environment:
-      <<: [*defaultEnv]
-      LANG: "${LANG_POSTGRES}"
-      POSTGRES_USER: "${DATABASE_USER}"
-      POSTGRES_PASSWORD: "${DATABASE_PASS}"
-    volumes:
-      - "postgresdata:/var/lib/postgresql/data"
-    healthcheck:
-      <<: [*defaultHealthCheck]
-      test: ["CMD", "pg_isready", "--username=${DATABASE_USER}"]
-    ports:
-      - "${INSTANCE_PORT_PREFIX}432:5432"
-
-#Backend: rabbitmq
-  rabbitmq:
-    <<: [*defaultcontainer]
-    image: "rabbitmq:${VERSION_TAG_IO_BACKEND_RABBITMQ:-3}"
-    command: bash -c "rabbitmq-plugins enable rabbitmq_stomp && rabbitmq-plugins enable rabbitmq_web_stomp && rabbitmq-server"
-    environment:
-      <<: [*defaultEnv]
-      RABBITMQ_DEFAULT_USER: "${RABBITMQ_DEFAULT_USER}"
-      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_DEFAULT_PASS}"
-    volumes:
-      - "rabbitmq:/var/lib/rabbitmq"
-    healthcheck:
-      <<: [*defaultHealthCheck]
-      test: rabbitmq-diagnostics -q ping
-    ports:
-      - "${INSTANCE_PORT_PREFIX}671:5671"
-      - "${INSTANCE_PORT_PREFIX}672:5672"
-#      - "${INSTANCE_PORT_PREFIX}674:15674"
-
-#Backend: solr
-  solr:
-    <<: [*defaultcontainer]
-    image: "solr:${VERSION_TAG_IO_BACKEND_SOLR:-9}"
-    command:
-      - bash
-      - "-c"
-      - precreate-core objects; precreate-core iotcore; precreate-core reports; precreate-core ecm; exec solr -f
-    environment:
-      <<: [*defaultEnv]
-      SOLR_AUTH_TYPE: basic
-      SOLR_AUTHENTICATION_OPTS: "-Dbasicauth=${SOLR_USER}:${SOLR_PASS}"
-      # Siehe https://github.com/apache/lucene-solr/pull/2304/files
-      SOLR_OPTS: "-XX:-UseLargePages"
-    healthcheck:
-      <<: [*defaultHealthCheck]
-      test:
-        [
-          "CMD-SHELL",
-          "curl -f http://localhost:8983/solr/reports/admin/ping?wt=json",
-        ]
-    volumes:
-      - "solrdata:/var/solr"
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}004:8983"
-
-#Service: minio
-  minio:
-    <<: [*defaultcontainer]
-    image: "minio/minio:${VERSION_TAG_IO_SERVICE_MINIO:-latest}"
-    volumes:
-      - "miniodata:/data"
-    environment:
-      <<: [*defaultEnv]
-      MINIO_ROOT_USER: "${MINIO_ACCESS_KEY}"
-      MINIO_ROOT_PASSWORD: "${MINIO_SECRET_KEY}"
-    command: server --console-address ":${INSTANCE_PORT_PREFIX}901" /data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-    ports:
-      - "${INSTANCE_PORT_PREFIX}900:9000"
-      - '${INSTANCE_PORT_PREFIX}901:${INSTANCE_PORT_PREFIX}901'
-      
-#Service: io-service-auth
-  io-service-auth:
+     
+#Service: io-service-identity
+  io-service-identity:
     <<: [*defaultcontainer,*healthcheckTrue]
     image: "actiwareio/io-auth-service:${VERSION_TAG_IO_SERVICE_AUTH:-1-latest}"
     environment:
@@ -160,7 +79,7 @@ services:
       <<: [*defaultEnv,*amqpEnv,*publicAmqpEnv,*dbEnv]
       DEFAULT_PORT: 30002
       DEFAULT_DB: io-project-service
-      AUTH_SERVICE_ADDRESS: "http://io-service-auth:30001"
+      AUTH_SERVICE_ADDRESS: "http://io-service-identity:30001"
       EXCHANGE_DESIGNER: designer.bus
       PUBLIC_ADDRESS: "${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}002"
       PUBLIC_AUTH_SERVICE_ADDRESS: "${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}001"
@@ -168,7 +87,7 @@ services:
       PUBLIC_STOMP_USER: "${RABBITMQ_DEFAULT_USER}"
       PUBLIC_STOMP_PASS: "${RABBITMQ_DEFAULT_PASS}"
     depends_on:
-      io-service-auth:
+      io-service-identity:
         condition: service_healthy
 #    ports:
 #      - "${INSTANCE_PORT_PREFIX}002:30002"
@@ -185,7 +104,7 @@ services:
       DATABASE_ENCODING: "${DATABASE_ENCODING}"
       DEFAULT_DB: io-process-service
       DEFAULT_PORT: 30003
-      AUTH_SERVICE_ADDRESS: "http://io-service-auth:30001"
+      AUTH_SERVICE_ADDRESS: "http://io-service-identity:30001"
       EXCHANGE_REPORTING: process.reporting
       EXCHANGE_REPORTS: process.reports
       EXCHANGE_STATUS: process.status
@@ -266,7 +185,7 @@ services:
     environment:
       <<: [*defaultEnv,*amqpEnv,*publicAmqpEnv,*dbEnv]
       DEFAULT_PORT: 30009
-      AUTH_SERVICE_ADDRESS: "http://io-service-auth:30001"
+      AUTH_SERVICE_ADDRESS: "http://io-service-identity:30001"
       DEFAULT_DB: io-client-service
       RPC_QUEUE: client.rpc
       EXCHANGE_CLIENT_KEY: client_1
@@ -287,14 +206,14 @@ services:
 #Service: io-service-storage:
   io-service-storage:
     <<: [*defaultcontainer,*healthcheckTrue]
-    image: "actiwareio/io-object-storage-service:${VERSION_TAG_IO_SERVICE_STORAGE:-prerelease-2.0.2}"
+    image: "actiwareio/io-object-storage-service:${VERSION_TAG_IO_SERVICE_STORAGE:-2-latest}"
     environment:
       <<: [*defaultEnv,*srvDbEnv]
       SERVICE__DATABASE__DATABASE: "io-object-storage-service"
-      SERVICE__AUTH_SERVICE: "http://io-service-auth:30001"
+      SERVICE__AUTH_SERVICE: "http://io-service-identity:30001"
       SERVICE__SEARCH_ENGINE__TYPE: "SOLR"
       SERVICE__SEARCH_ENGINE__ADDRESS: "${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:30004/solr"
-      SERVICE__SEARCH_ENGINE__BASEINDEXNAME: "ecm"
+      SERVICE__SEARCH_ENGINE__BASEINDEXNAME: "objects"
       SERVICE__PUBLIC_ADDRESS: "${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:30010"
       SERVICE__OCR_SERVICE: "http://io-service-ocr:30018"
       SERVICE__MESSAGE_QUEUE__TYPE: "RabbitMQ"
@@ -308,7 +227,7 @@ services:
 #Service: io-service-ocr:
   io-service-ocr: 
     <<: [*defaultcontainer,*healthcheckTrue]
-    image: actiwareio/io-ocr-service:${VERSION_TAG_IO_SERVICE_OCR:-prerelease-1.0.0} 
+    image: actiwareio/io-ocr-service:${VERSION_TAG_IO_SERVICE_OCR:-2-latest} 
     environment: 
       <<: [*defaultEnv,*srvDbEnv]
       SERVICE__DATABASE__DATABASE: "io-ocr-service" 
@@ -318,7 +237,7 @@ services:
 #Client: io-client-client
   io-client-client:
     <<: [*defaultcontainer,*healthcheckTrue]
-    image: actiwareio/io-client:${VERSION_TAG_IO_CLIENT_CLIENT:-prerelease-2.0.3}
+    image: actiwareio/io-client:${VERSION_TAG_IO_CLIENT_CLIENT:-2-latest}
     environment:
       <<: [*defaultEnv]
       PROFILE_NAME: "Default"
@@ -334,10 +253,10 @@ services:
 #Client: io-client-designer
   io-client-designer:
     <<: [*defaultcontainer,*healthcheckTrue]
-    image: actiwareio/io-designer:${VERSION_TAG_IO_CLIENT_DESIGNER:-prerelease-2.0.4}
+    image: actiwareio/io-designer:${VERSION_TAG_IO_CLIENT_DESIGNER:-2-latest}
     restart: unless-stopped
     depends_on:
-      - io-service-auth
+      - io-service-identity
       - io-service-project
     environment:
       PUBLIC_ADDRESS: '${INSTANCE_HTTP_TYPE}://${EXTERNALADDRESS}'
