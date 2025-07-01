@@ -1,268 +1,270 @@
 x-defaultcontainer: &defaultcontainer
-  restart: unless-stopped
-  logging:
-    driver: "${LOG_SERVICE_DRIVER:-json-file}"
-    options:
-      max-size: "${LOG_SERVICE_SIZE:-10m}"
-      max-file: "${LOG_SERVICE_FILES:-3}"
-  volumes:
-      - &etcCerts "/etc/ssl/certs:/etc/ssl/certs:ro"
-  environment: &defaultEnv
-    TZ: "${TIMEZONE}"
-    LANG: "${LANGUAGE}"
+    restart: unless-stopped
+    logging:
+        driver: '${LOG_SERVICE_DRIVER:-json-file}'
+        options:
+            max-size: '${LOG_SERVICE_SIZE:-10m}'
+            max-file: '${LOG_SERVICE_FILES:-3}'
+    volumes:
+        - &etcCerts '/etc/ssl/certs:/etc/ssl/certs:ro'
+    environment: &defaultEnv
+        TZ: '${TIMEZONE}'
+        LANG: '${LANGUAGE}'
 
 x-healthcheckTrue: &healthcheckTrue
-  healthcheck: &defaultHealthCheck
-    test: ["CMD-SHELL", "exit 0"]
-    start_period: 3s
-    interval: 5s
-    timeout: 3s
-    retries: 5
+    healthcheck: &defaultHealthCheck
+        test: ['CMD-SHELL', 'exit 0']
+        start_period: 3s
+        interval: 5s
+        timeout: 3s
+        retries: 5
 
 x-amqpEnv: &amqpEnv
-  AMQP_SERVER: "${AMQP_SERVER}"
-  AMQP_PORT: "${AMQP_PORT}"
-  AMQP_USER: "${RABBITMQ_DEFAULT_USER}"
-  AMQP_PASS: "${RABBITMQ_DEFAULT_PASS}"
+    AMQP_SERVER: '${AMQP_SERVER}'
+    AMQP_PORT: '${AMQP_PORT}'
+    AMQP_USER: '${RABBITMQ_DEFAULT_USER}'
+    AMQP_PASS: '${RABBITMQ_DEFAULT_PASS}'
+
+x-amqpLegacyEnv: &amqpLegacyEnv
+    SERVICE__LEGACY__AMQP__SERVER: '${AMQP_SERVER}'
+    SERVICE__LEGACY__AMQP__PORT: '${AMQP_PORT}'
+    SERVICE__LEGACY__AMQP__USER: '${RABBITMQ_DEFAULT_USER}'
+    SERVICE__LEGACY__AMQP__PASS: '${RABBITMQ_DEFAULT_PASS}'
 
 x-publicAmqpEnv: &publicAmqpEnv
-  PUBLIC_AMQP_SERVER: "${EXTERNALADDRESS}"
-  PUBLIC_AMQP_PORT: "${INSTANCE_PORT_PREFIX}672"
-  PUBLIC_AMQP_USER: "${RABBITMQ_DEFAULT_USER}"
-  PUBLIC_AMQP_PASS: "${RABBITMQ_DEFAULT_PASS}"
+    PUBLIC_AMQP_SERVER: '${EXTERNALADDRESS}'
+    PUBLIC_AMQP_PORT: '${INSTANCE_PORT_PREFIX}672'
+    PUBLIC_AMQP_USER: '${RABBITMQ_DEFAULT_USER}'
+    PUBLIC_AMQP_PASS: '${RABBITMQ_DEFAULT_PASS}'
 
 x-dbEnv: &dbEnv
-  DB_HOST: "${DATABASE_SERVER}"
-  DB_PORT: "${DATABASE_PORT}"
-  DB_USER: "${DATABASE_USER}"
-  DB_PASS: "${DATABASE_PASS}"
-  DATABASE_ENCODING: "${DATABASE_ENCODING}"
+    DB_HOST: '${DATABASE_SERVER}'
+    DB_PORT: '${DATABASE_PORT}'
+    DB_USER: '${DATABASE_USER}'
+    DB_PASS: '${DATABASE_PASS}'
+    DATABASE_ENCODING: '${DATABASE_ENCODING}'
 
 x-srvDbEnv: &srvDbEnv
-  SERVICE__DATABASE__SERVER: "${DATABASE_SERVER}"
-  SERVICE__DATABASE__PORT: "${DATABASE_PORT}"
-  SERVICE__DATABASE__USERNAME: "${DATABASE_USER}"
-  SERVICE__DATABASE__PASSWORD: "${DATABASE_PASS}"
-  SERVICE__DATABASE__ENCODING: "${DATABASE_ENCODING}"
+    SERVICE__DATABASE__SERVER: '${DATABASE_SERVER}'
+    SERVICE__DATABASE__PORT: '${DATABASE_PORT}'
+    SERVICE__DATABASE__USERNAME: '${DATABASE_USER}'
+    SERVICE__DATABASE__PASSWORD: '${DATABASE_PASS}'
+    SERVICE__DATABASE__ENCODING: '${DATABASE_ENCODING}'
 
 services:
-     
-#Service: io-service-identity
-  io-service-identity:
-    <<: [*defaultcontainer,*healthcheckTrue]
-    image: "actiwareio/io-auth-service:${VERSION_TAG_IO_SERVICE_AUTH:-1-latest}"
-    environment:
-      <<: [*defaultEnv,*amqpEnv]
-      BIND_TOKEN_TO_IP: "false"
-      DATABASE_SERVER: "${DATABASE_SERVER}:${DATABASE_PORT}"
-      DATABASE_USER: "${DATABASE_USER}"
-      DATABASE_PASS: "${DATABASE_PASS}"
-      DATABASE_ENCODING: "${DATABASE_ENCODING}"
-      DEFAULT_DB: io-auth-service
-      DEFAULT_PORT: 30001
-      DEFAULT_USER: "${AUTH_DEFAULT_USER}"
-      DEFAULT_PASS: "${AUTH_DEFAULT_PASS}"
-      EXCHANGE_AUTH_SERVICE: auth.service
-      TOKEN_MASTER: "${TOKEN_MASTER}"
-      DEFAULT_VALIDITY_PERIOD: "${AUTH_TICKET_TIMEOUT}"
-    depends_on:
-      - postgres
-      - rabbitmq
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}001:30001"
+    #Service: io-service-identity
+    io-service-identity:
+        <<: [*defaultcontainer, *healthcheckTrue]
+        image: 'actiwareio/io-auth-service:${VERSION_TAG_IO_SERVICE_AUTH:-1-latest}'
+        environment:
+            <<: [*defaultEnv, *srvDbEnv, *amqpLegacyEnv]
+            BIND_TOKEN_TO_IP: 'false'
+            SERVICE__DATABASE__NAME: io-auth-service
+            SERVICE__DEFAULT__USERNAME: '${AUTH_DEFAULT_USER}'
+            SERVICE__DEFAULT__PASSWORD: '${AUTH_DEFAULT_PASS}'
+            SERVICE__DEFAULT__WEB_CLIENT_ID: '${AUTH_DEFAULT_WEB_CLIENT_ID}'
+            SERVICE__DEFAULT__WEB_CLIENT_SECRET: '${AUTH_DEFAULT_WEB_CLIENT_SECRET}'
+            SERVICE__LEGACY__TOKEN_MASTER: '${TOKEN_MASTER}'
+            SERVICE__LEGACY__AMQP__EXCHANGE: auth.service
+            SERVICE__DEFAULT_VALIDITY_PERIOD: '${AUTH_TICKET_TIMEOUT}'
+        depends_on:
+            - postgres
+            - rabbitmq
+    #    ports:
+    #      - "${INSTANCE_PORT_PREFIX}001:30001"
 
-#Service: io-service-project
-  io-service-project:
-    <<: [*defaultcontainer,*healthcheckTrue]
-    image: "actiwareio/io-project-service:${VERSION_TAG_IO_SERVICE_PROJECT:-1-latest}"
-    environment:
-      <<: [*defaultEnv,*amqpEnv,*publicAmqpEnv,*dbEnv]
-      DEFAULT_PORT: 30002
-      DEFAULT_DB: io-project-service
-      AUTH_SERVICE_ADDRESS: "http://io-service-identity:30001"
-      EXCHANGE_DESIGNER: designer.bus
-      PUBLIC_ADDRESS: "${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}002"
-      PUBLIC_AUTH_SERVICE_ADDRESS: "${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}001"
-      PUBLIC_STOMP_ADDRESS: ${INSTANCE_WS_TYPE}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}674/ws
-      PUBLIC_STOMP_USER: "${RABBITMQ_DEFAULT_USER}"
-      PUBLIC_STOMP_PASS: "${RABBITMQ_DEFAULT_PASS}"
-    depends_on:
-      io-service-identity:
-        condition: service_healthy
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}002:30002"
+    #Service: io-service-project
+    io-service-project:
+        <<: [*defaultcontainer, *healthcheckTrue]
+        image: 'actiwareio/io-project-service:${VERSION_TAG_IO_SERVICE_PROJECT:-1-latest}'
+        environment:
+            <<: [*defaultEnv, *amqpEnv, *publicAmqpEnv, *dbEnv]
+            DEFAULT_PORT: 30002
+            DEFAULT_DB: io-project-service
+            AUTH_SERVICE_ADDRESS: 'http://io-service-identity:30001'
+            EXCHANGE_DESIGNER: designer.bus
+            PUBLIC_ADDRESS: '${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}002'
+            PUBLIC_AUTH_SERVICE_ADDRESS: '${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}001'
+            PUBLIC_STOMP_ADDRESS: ${INSTANCE_WS_TYPE}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}674/ws
+            PUBLIC_STOMP_USER: '${RABBITMQ_DEFAULT_USER}'
+            PUBLIC_STOMP_PASS: '${RABBITMQ_DEFAULT_PASS}'
+        depends_on:
+            io-service-identity:
+                condition: service_healthy
+    #    ports:
+    #      - "${INSTANCE_PORT_PREFIX}002:30002"
 
-#Service: io-service-process
-  io-service-process:
-    <<: [*defaultcontainer,*healthcheckTrue]
-    image: "actiwareio/io-process-service:${VERSION_TAG_IO_SERVICE_PROCESS:-1-latest}"
-    environment:
-      <<: [*defaultEnv,*amqpEnv]
-      DATABASE_SERVER: "${DATABASE_SERVER}:${DATABASE_PORT}"
-      DATABASE_USER: "${DATABASE_USER}"
-      DATABASE_PASS: "${DATABASE_PASS}"
-      DATABASE_ENCODING: "${DATABASE_ENCODING}"
-      DEFAULT_DB: io-process-service
-      DEFAULT_PORT: 30003
-      AUTH_SERVICE_ADDRESS: "http://io-service-identity:30001"
-      EXCHANGE_REPORTING: process.reporting
-      EXCHANGE_REPORTS: process.reports
-      EXCHANGE_STATUS: process.status
-      EXCHANGE_STATUS_KEY: process_engine_1
-      QUEUE_RPC: process.rpc
-      MODULE_CALLBACK_URL: "${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}003"
-      MODULE_TRIGGER_TOKEN: "${PROCESS_TRIGGER_TOKEN}"
-      DEFAULT_USER: "${AUTH_DEFAULT_USER}"
-      DEFAULT_LANGUAGE: ${DEFAULT_CULTURE_INFO}
-      ALLOW_ANONYMOUS_PROCESS_START: "${ALLOW_ANONYMOUS_PROCESS_START}"
-      DEBUG_LOG: "false"
-      HTTP_TIMEOUT: "${PROCESS_HTTP_TIMEOUT}"
-      MODULE_CALLBACK_AMQP_SERVER: "${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}672"
-      REPORTS_DEFAULT_RETENTION: "${REPORTS_DEFAULT_RETENTION}"
-      REPORTS_DEVICE_RETENTION: "${REPORTS_DEVICE_RETENTION}"
-      REPORTS_NONDEVICE_RETENTION: "${REPORTS_NONDEVICE_RETENTION}"
-      REPORTS_RETAIN_OPTION_ERROR: "${REPORTS_RETAIN_OPTION_ERROR}"
-      REPORTS_RETAIN_OPTION_WARNING: "${REPORTS_RETAIN_OPTION_WARNING}"
-      REPORTS_RETAIN_OPTION_SUCCESS: "${REPORTS_RETAIN_OPTION_SUCCESS}"
-      REPORTS_DEVICE_RETAIN_OPTION_ERROR: "${REPORTS_DEVICE_RETAIN_OPTION_ERROR}"
-      REPORTS_DEVICE_RETAIN_OPTION_WARNING: "${REPORTS_DEVICE_RETAIN_OPTION_WARNING}"
-      REPORTS_DEVICE_RETAIN_OPTION_SUCCESS: "${REPORTS_DEVICE_RETAIN_OPTION_SUCCESS}"
-      REPORTS_NONDEVICE_RETAIN_OPTION_ERROR: "${REPORTS_NONDEVICE_RETAIN_OPTION_ERROR}"
-      REPORTS_NONDEVICE_RETAIN_OPTION_WARNING: "${REPORTS_NONDEVICE_RETAIN_OPTION_WARNING}"
-      REPORTS_NONDEVICE_RETAIN_OPTION_SUCCESS: "${REPORTS_NONDEVICE_RETAIN_OPTION_SUCCESS}"
-    depends_on:
-      io-service-report:
-        condition: service_healthy
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}003:30003"
+    #Service: io-service-process
+    io-service-process:
+        <<: [*defaultcontainer, *healthcheckTrue]
+        image: 'actiwareio/io-process-service:${VERSION_TAG_IO_SERVICE_PROCESS:-1-latest}'
+        environment:
+            <<: [*defaultEnv, *amqpEnv]
+            DATABASE_SERVER: '${DATABASE_SERVER}:${DATABASE_PORT}'
+            DATABASE_USER: '${DATABASE_USER}'
+            DATABASE_PASS: '${DATABASE_PASS}'
+            DATABASE_ENCODING: '${DATABASE_ENCODING}'
+            DEFAULT_DB: io-process-service
+            DEFAULT_PORT: 30003
+            AUTH_SERVICE_ADDRESS: 'http://io-service-identity:30001'
+            EXCHANGE_REPORTING: process.reporting
+            EXCHANGE_REPORTS: process.reports
+            EXCHANGE_STATUS: process.status
+            EXCHANGE_STATUS_KEY: process_engine_1
+            QUEUE_RPC: process.rpc
+            MODULE_CALLBACK_URL: '${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}003'
+            MODULE_TRIGGER_TOKEN: '${PROCESS_TRIGGER_TOKEN}'
+            DEFAULT_USER: '${AUTH_DEFAULT_USER}'
+            DEFAULT_LANGUAGE: ${DEFAULT_CULTURE_INFO}
+            ALLOW_ANONYMOUS_PROCESS_START: '${ALLOW_ANONYMOUS_PROCESS_START}'
+            DEBUG_LOG: 'false'
+            HTTP_TIMEOUT: '${PROCESS_HTTP_TIMEOUT}'
+            MODULE_CALLBACK_AMQP_SERVER: '${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}672'
+            REPORTS_DEFAULT_RETENTION: '${REPORTS_DEFAULT_RETENTION}'
+            REPORTS_DEVICE_RETENTION: '${REPORTS_DEVICE_RETENTION}'
+            REPORTS_NONDEVICE_RETENTION: '${REPORTS_NONDEVICE_RETENTION}'
+            REPORTS_RETAIN_OPTION_ERROR: '${REPORTS_RETAIN_OPTION_ERROR}'
+            REPORTS_RETAIN_OPTION_WARNING: '${REPORTS_RETAIN_OPTION_WARNING}'
+            REPORTS_RETAIN_OPTION_SUCCESS: '${REPORTS_RETAIN_OPTION_SUCCESS}'
+            REPORTS_DEVICE_RETAIN_OPTION_ERROR: '${REPORTS_DEVICE_RETAIN_OPTION_ERROR}'
+            REPORTS_DEVICE_RETAIN_OPTION_WARNING: '${REPORTS_DEVICE_RETAIN_OPTION_WARNING}'
+            REPORTS_DEVICE_RETAIN_OPTION_SUCCESS: '${REPORTS_DEVICE_RETAIN_OPTION_SUCCESS}'
+            REPORTS_NONDEVICE_RETAIN_OPTION_ERROR: '${REPORTS_NONDEVICE_RETAIN_OPTION_ERROR}'
+            REPORTS_NONDEVICE_RETAIN_OPTION_WARNING: '${REPORTS_NONDEVICE_RETAIN_OPTION_WARNING}'
+            REPORTS_NONDEVICE_RETAIN_OPTION_SUCCESS: '${REPORTS_NONDEVICE_RETAIN_OPTION_SUCCESS}'
+        depends_on:
+            io-service-report:
+                condition: service_healthy
+    #    ports:
+    #      - "${INSTANCE_PORT_PREFIX}003:30003"
 
-#Service: io-service-report
-  io-service-report:
-    <<: [*defaultcontainer,*healthcheckTrue]
-    image: "actiwareio/io-report-service:${VERSION_TAG_IO_SERVICE_REPORT:-2-latest}"
-    environment:
-      <<: [*defaultEnv,*srvDbEnv]
-      SERVICE__REPORT_DIR: /reports
-      SERVICE__LIMIT_ADD_TO_SEARCH_INDEX: 1000
-      SERVICE__TRIGGER__TYPE: AMQP
-      SERVICE__TRIGGER__AMQP__PROTOCOL: 0.9.1
-      SERVICE__TRIGGER__AMQP__SERVER: "${AMQP_SERVER}"
-      SERVICE__TRIGGER__AMQP__PORT: "${AMQP_PORT}"
-      SERVICE__TRIGGER__AMQP__USERNAME: "${RABBITMQ_DEFAULT_USER}"
-      SERVICE__TRIGGER__AMQP__PASSWORD: "${RABBITMQ_DEFAULT_PASS}"
-      SERVICE__TRIGGER__AMQP__TLS: "false"
-      SERVICE__TRIGGER__AMQP__RECOVERY_INTERVAL: 60
-      SERVICE__TRIGGER__AMQP__ROUTING_KEY: rps.reports
-      SERVICE__TRIGGER__AMQP__EXCHANGE: process.reports
-      SERVICE__TRIGGER__AMQP__QUEUE_NAME: ""
-      SERVICE__TRIGGER__AMQP__EXCHANGE_TYPE: fanout
-      SERVICE__TRIGGER__AMQP__CREATE_EXCHANGE: "true"
-      SERVICE__TRIGGER__AMQP__DURABLE: "true"
-      SERVICE__TRIGGER__AMQP__EXCHANGE_AUTO_DELETE: "false"
-      SERVICE__TRIGGER__AMQP__QUEUE_AUTO_DELETE: "false"
-      SERVICE__TRIGGER__AMQP__SSL_PROTOCOL: None
-      SERVICE__TRIGGER__AMQP__ENABLE: "true"
-      SERVICE__DATABASE__DATABASE: io-process-service
-      SERVICE__DATABASE__SEARCH_INTERVAL: 5000
-      SERVICE__SEARCH_ENGINE__TYPE: SOLR
-      SERVICE__SEARCH_ENGINE__ADDRESS: "http://solr:8983/solr"
-      SERVICE__SEARCH_ENGINE__CORE: reports
-      SERVICE__SEARCH_ENGINE__USE_SIMPLE_QUERY_LANGUAGE: "true"
-      SERVICE__SEARCH_ENGINE__USERNAME: "${SOLR_USER}"
-      SERVICE__SEARCH_ENGINE__PASSWORD: "${SOLR_PASS}"
+    #Service: io-service-report
+    io-service-report:
+        <<: [*defaultcontainer, *healthcheckTrue]
+        image: 'actiwareio/io-report-service:${VERSION_TAG_IO_SERVICE_REPORT:-2-latest}'
+        environment:
+            <<: [*defaultEnv, *srvDbEnv]
+            SERVICE__REPORT_DIR: /reports
+            SERVICE__LIMIT_ADD_TO_SEARCH_INDEX: 1000
+            SERVICE__TRIGGER__TYPE: AMQP
+            SERVICE__TRIGGER__AMQP__PROTOCOL: 0.9.1
+            SERVICE__TRIGGER__AMQP__SERVER: '${AMQP_SERVER}'
+            SERVICE__TRIGGER__AMQP__PORT: '${AMQP_PORT}'
+            SERVICE__TRIGGER__AMQP__USERNAME: '${RABBITMQ_DEFAULT_USER}'
+            SERVICE__TRIGGER__AMQP__PASSWORD: '${RABBITMQ_DEFAULT_PASS}'
+            SERVICE__TRIGGER__AMQP__TLS: 'false'
+            SERVICE__TRIGGER__AMQP__RECOVERY_INTERVAL: 60
+            SERVICE__TRIGGER__AMQP__ROUTING_KEY: rps.reports
+            SERVICE__TRIGGER__AMQP__EXCHANGE: process.reports
+            SERVICE__TRIGGER__AMQP__QUEUE_NAME: ''
+            SERVICE__TRIGGER__AMQP__EXCHANGE_TYPE: fanout
+            SERVICE__TRIGGER__AMQP__CREATE_EXCHANGE: 'true'
+            SERVICE__TRIGGER__AMQP__DURABLE: 'true'
+            SERVICE__TRIGGER__AMQP__EXCHANGE_AUTO_DELETE: 'false'
+            SERVICE__TRIGGER__AMQP__QUEUE_AUTO_DELETE: 'false'
+            SERVICE__TRIGGER__AMQP__SSL_PROTOCOL: None
+            SERVICE__TRIGGER__AMQP__ENABLE: 'true'
+            SERVICE__DATABASE__DATABASE: io-process-service
+            SERVICE__DATABASE__SEARCH_INTERVAL: 5000
+            SERVICE__SEARCH_ENGINE__TYPE: SOLR
+            SERVICE__SEARCH_ENGINE__ADDRESS: 'http://solr:8983/solr'
+            SERVICE__SEARCH_ENGINE__CORE: reports
+            SERVICE__SEARCH_ENGINE__USE_SIMPLE_QUERY_LANGUAGE: 'true'
+            SERVICE__SEARCH_ENGINE__USERNAME: '${SOLR_USER}'
+            SERVICE__SEARCH_ENGINE__PASSWORD: '${SOLR_PASS}'
 
-    depends_on:
-      - postgres
-      - solr
-      - rabbitmq
-#    ports:
-      #- "${INSTANCE_PORT_PREFIX}011:30011"
+        depends_on:
+            - postgres
+            - solr
+            - rabbitmq
+    #    ports:
+    #- "${INSTANCE_PORT_PREFIX}011:30011"
 
-#Service: io-service-client
-  io-service-client:
-    <<: [*defaultcontainer,*healthcheckTrue]
-    image: "actiwareio/io-client-service:${VERSION_TAG_IO_SERVICE_CLIENT:-1-latest}"
-    environment:
-      <<: [*defaultEnv,*amqpEnv,*publicAmqpEnv,*dbEnv]
-      DEFAULT_PORT: 30009
-      AUTH_SERVICE_ADDRESS: "http://io-service-identity:30001"
-      DEFAULT_DB: io-client-service
-      RPC_QUEUE: client.rpc
-      EXCHANGE_CLIENT_KEY: client_1
-      EXCHANGE_CLIENT_MESSAGE: client.message
-      EXCHANGE_DOWNLOAD_LIST: downloadlist.exchange
-      PUBLIC_AUTH_SERVICE_ADDRESS: "${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}001"
-      PUBLIC_ADDRESS: "${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}009"
-      PUBLIC_STOMP_ADDRESS: ${INSTANCE_WS_TYPE}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}674/ws
-      PUBLIC_STOMP_USER: "${RABBITMQ_DEFAULT_USER}"
-      PUBLIC_STOMP_PASS: "${RABBITMQ_DEFAULT_PASS}"
-      ML_SERVICE_ADDRESS: http://io-machine-learning-service:30013
-    depends_on:
-      - postgres
-      - rabbitmq
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}009:30009"
+    #Service: io-service-client
+    io-service-client:
+        <<: [*defaultcontainer, *healthcheckTrue]
+        image: 'actiwareio/io-client-service:${VERSION_TAG_IO_SERVICE_CLIENT:-1-latest}'
+        environment:
+            <<: [*defaultEnv, *amqpEnv, *publicAmqpEnv, *dbEnv]
+            DEFAULT_PORT: 30009
+            AUTH_SERVICE_ADDRESS: 'http://io-service-identity:30001'
+            DEFAULT_DB: io-client-service
+            RPC_QUEUE: client.rpc
+            EXCHANGE_CLIENT_KEY: client_1
+            EXCHANGE_CLIENT_MESSAGE: client.message
+            EXCHANGE_DOWNLOAD_LIST: downloadlist.exchange
+            PUBLIC_AUTH_SERVICE_ADDRESS: '${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}001'
+            PUBLIC_ADDRESS: '${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}009'
+            PUBLIC_STOMP_ADDRESS: ${INSTANCE_WS_TYPE}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}674/ws
+            PUBLIC_STOMP_USER: '${RABBITMQ_DEFAULT_USER}'
+            PUBLIC_STOMP_PASS: '${RABBITMQ_DEFAULT_PASS}'
+            ML_SERVICE_ADDRESS: http://io-machine-learning-service:30013
+        depends_on:
+            - postgres
+            - rabbitmq
+    #    ports:
+    #      - "${INSTANCE_PORT_PREFIX}009:30009"
 
-#Service: io-service-storage:
-  io-service-storage:
-    <<: [*defaultcontainer,*healthcheckTrue]
-    image: "actiwareio/io-object-storage-service:${VERSION_TAG_IO_SERVICE_STORAGE:-2-latest}"
-    environment:
-      <<: [*defaultEnv,*srvDbEnv]
-      SERVICE__DATABASE__DATABASE: "io-object-storage-service"
-      SERVICE__AUTH_SERVICE: "http://io-service-identity:30001"
-      SERVICE__SEARCH_ENGINE__TYPE: "SOLR"
-      SERVICE__SEARCH_ENGINE__ADDRESS: "${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:30004/solr"
-      SERVICE__SEARCH_ENGINE__BASEINDEXNAME: "objects"
-      SERVICE__PUBLIC_ADDRESS: "${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:30010"
-      SERVICE__OCR_SERVICE: "http://io-service-ocr:30018"
-      SERVICE__MESSAGE_QUEUE__TYPE: "RabbitMQ"
-      SERVICE__MESSAGE_QUEUE__ADDRESS: "${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}672"
-      SERVICE__MESSAGE_QUEUE__USERNAME: "${RABBITMQ_DEFAULT_USER}"
-      SERVICE__MESSAGE_QUEUE__PASSWORD: "${RABBITMQ_DEFAULT_PASS}"
+    #Service: io-service-storage:
+    io-service-storage:
+        <<: [*defaultcontainer, *healthcheckTrue]
+        image: 'actiwareio/io-object-storage-service:${VERSION_TAG_IO_SERVICE_STORAGE:-2-latest}'
+        environment:
+            <<: [*defaultEnv, *srvDbEnv]
+            SERVICE__DATABASE__DATABASE: 'io-object-storage-service'
+            SERVICE__AUTH_SERVICE: 'http://io-service-identity:30001'
+            SERVICE__SEARCH_ENGINE__TYPE: 'SOLR'
+            SERVICE__SEARCH_ENGINE__ADDRESS: '${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:30004/solr'
+            SERVICE__SEARCH_ENGINE__BASEINDEXNAME: 'objects'
+            SERVICE__PUBLIC_ADDRESS: '${INSTANCE_HTTP_TYPE:-http}://${EXTERNALADDRESS}:30010'
+            SERVICE__OCR_SERVICE: 'http://io-service-ocr:30018'
+            SERVICE__MESSAGE_QUEUE__TYPE: 'RabbitMQ'
+            SERVICE__MESSAGE_QUEUE__ADDRESS: '${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}672'
+            SERVICE__MESSAGE_QUEUE__USERNAME: '${RABBITMQ_DEFAULT_USER}'
+            SERVICE__MESSAGE_QUEUE__PASSWORD: '${RABBITMQ_DEFAULT_PASS}'
 
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}010:30010"
-  
-#Service: io-service-ocr:
-  io-service-ocr: 
-    <<: [*defaultcontainer,*healthcheckTrue]
-    image: actiwareio/io-ocr-service:${VERSION_TAG_IO_SERVICE_OCR:-2-latest} 
-    environment: 
-      <<: [*defaultEnv,*srvDbEnv]
-      SERVICE__DATABASE__DATABASE: "io-ocr-service" 
-#    ports: 
-#      - "${INSTANCE_PORT_PREFIX}018:30018"
+    #    ports:
+    #      - "${INSTANCE_PORT_PREFIX}010:30010"
 
-#Client: io-client-client
-  io-client-client:
-    <<: [*defaultcontainer,*healthcheckTrue]
-    image: actiwareio/io-client:${VERSION_TAG_IO_CLIENT_CLIENT:-2-latest}
-    environment:
-      <<: [*defaultEnv]
-      PROFILE_NAME: "Default"
-      MODE: "STORAGE"
-      IS_DEFAULT: "true"
-      PUBLIC_ADDRESS: "${INSTANCE_HTTP_TYPE}://${EXTERNALADDRESS}"
-      PUBLIC_CLIENT_SERVICE_ADDRESS: ":${INSTANCE_PORT_PREFIX}009"
-      PUBLIC_PROCESS_SERVICE_ADDRESS: ":${INSTANCE_PORT_PREFIX}003"
-      PUBLIC_OBJECT_STORAGE_SERVICE_ADDRESS: ":${INSTANCE_PORT_PREFIX}010"
-#    ports:
-#      - "${INSTANCE_PORT_PREFIX}202:30202"
+    #Service: io-service-ocr:
+    io-service-ocr:
+        <<: [*defaultcontainer, *healthcheckTrue]
+        image: actiwareio/io-ocr-service:${VERSION_TAG_IO_SERVICE_OCR:-2-latest}
+        environment:
+            <<: [*defaultEnv, *srvDbEnv]
+            SERVICE__DATABASE__DATABASE: 'io-ocr-service'
+    #    ports:
+    #      - "${INSTANCE_PORT_PREFIX}018:30018"
 
-#Client: io-client-designer
-  io-client-designer:
-    <<: [*defaultcontainer,*healthcheckTrue]
-    image: actiwareio/io-designer:${VERSION_TAG_IO_CLIENT_DESIGNER:-2-latest}
-    restart: unless-stopped
-    depends_on:
-      - io-service-identity
-      - io-service-project
-    environment:
-      PUBLIC_ADDRESS: '${INSTANCE_HTTP_TYPE}://${EXTERNALADDRESS}'
-      PUBLIC_PROJECT_SERVICE_ADDRESS: "${INSTANCE_HTTP_TYPE}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}002"
-      PROFILE_NAME: "Docker"
-      IS_DEFAULT: "true"
-      MODE: "DESIGNER"
+    #Client: io-client-client
+    io-client-client:
+        <<: [*defaultcontainer, *healthcheckTrue]
+        image: actiwareio/io-client:${VERSION_TAG_IO_CLIENT_CLIENT:-2-latest}
+        environment:
+            <<: [*defaultEnv]
+            PROFILE_NAME: 'Default'
+            MODE: 'STORAGE'
+            IS_DEFAULT: 'true'
+            PUBLIC_ADDRESS: '${INSTANCE_HTTP_TYPE}://${EXTERNALADDRESS}'
+            PUBLIC_CLIENT_SERVICE_ADDRESS: ':${INSTANCE_PORT_PREFIX}009'
+            PUBLIC_PROCESS_SERVICE_ADDRESS: ':${INSTANCE_PORT_PREFIX}003'
+            PUBLIC_OBJECT_STORAGE_SERVICE_ADDRESS: ':${INSTANCE_PORT_PREFIX}010'
+    #    ports:
+    #      - "${INSTANCE_PORT_PREFIX}202:30202"
+
+    #Client: io-client-designer
+    io-client-designer:
+        <<: [*defaultcontainer, *healthcheckTrue]
+        image: actiwareio/io-designer:${VERSION_TAG_IO_CLIENT_DESIGNER:-2-latest}
+        restart: unless-stopped
+        depends_on:
+            - io-service-identity
+            - io-service-project
+        environment:
+            PUBLIC_ADDRESS: '${INSTANCE_HTTP_TYPE}://${EXTERNALADDRESS}'
+            PUBLIC_PROJECT_SERVICE_ADDRESS: '${INSTANCE_HTTP_TYPE}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}002'
+            PROFILE_NAME: 'Docker'
+            IS_DEFAULT: 'true'
+            MODE: 'DESIGNER'
 #    ports:
 #      - "${INSTANCE_PORT_PREFIX}201:30201"
