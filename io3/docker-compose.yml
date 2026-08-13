@@ -1,0 +1,4 @@
+include:
+  - clients.docker-compose.yml
+  - services.docker-compose.yml
+  - modules.docker-compose.yml

@@ -1,0 +1,39 @@
+services:
+  # Client: io-client-designer
+  io-client-designer:
+    extends:
+      file: base.yml
+      service: httpsContainer
+
+    image: actiwareio/io-designer:${VERSION_TAG_IO_CLIENT_DESIGNER:-3-developer}
+    depends_on:
+      - io-identity-service
+      - io-project-service
+    environment:
+      SERVICE__ENDPOINTS__PROJECTSERVICE__NAME: "Default"
+      SERVICE__ENDPOINTS__PROJECTSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}002"
+      SERVICE__ENDPOINTS__PROJECTSERVICE__CLIENTID: "${CLIENT_ID}"
+      SERVICE__ENDPOINTS__PROJECTSERVICE__CLIENTSECRET: "${CLIENT_SECRET}"
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}201:443"
+
+  # Client: io-client-web
+  io-client-web:
+    extends:
+      file: base.yml
+      service: httpsContainer
+
+    image: actiwareio/io-client:${VERSION_TAG_IO_CLIENT_WEB:-3-developer}
+    environment:
+      SERVICE__ENDPOINTS__SERVICE__NAME: "Default"
+      SERVICE__ENDPOINTS__SERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}012"
+      SERVICE__ENDPOINTS__SERVICE__CLIENTID: "${CLIENT_ID}"
+      SERVICE__ENDPOINTS__SERVICE__CLIENTSECRET: "${CLIENT_SECRET}"
+    depends_on:
+      io-identity-service:
+        condition: service_started
+      io-bff-client-service:
+        condition: service_started #Eigentlich healthy, aber er hat keinen Healthcheck
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}202:443"
+

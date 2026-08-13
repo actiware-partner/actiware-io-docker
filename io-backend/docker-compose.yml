@@ -1,0 +1,137 @@
+x-defaultHealthCheck:
+  healthcheck: &defaultHealthCheck  
+    test: ["CMD-SHELL", "exit 0"]
+    start_period: 3s
+    interval: 5s
+    timeout: 3s
+    retries: 5
+services:
+  postgres:
+    extends:
+      file: base.yml
+      service: httpsContainer
+
+    image: "postgres:${VERSION_TAG_IO_BACKEND_POSTGRES:-18}"
+    environment:
+      LANG: "${LANG_POSTGRES:-en_US.utf8}"
+      POSTGRES_USER: "${DATABASE_USER}"
+      POSTGRES_PASSWORD: "${DATABASE_PASS}"
+    volumes:
+      - "postgre-data:/var/lib/postgresql"
+      - ./config/postgres/LogsToConsole.conf:/etc/postgresql/awRunAddons/LogsToConsole.conf
+    healthcheck:
+      <<: [*defaultHealthCheck]
+      test: ["CMD", "pg_isready", "--username=${DATABASE_USER}"]
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}432:5432"
+
+  qdrant:
+    extends:
+      file: base.yml
+      service: stumpContainer
+
+    image: "qdrant/qdrant:${VERSION_TAG_IO_BACKEND_QDRANT:-v1}"
+    environment:
+      QDRANT__TELEMETRY_DISABLED: "true" # Disable telemetry for privacy
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}333:6333"
+      - "${INSTANCE_PORT_PREFIX:-30}334:6334"
+    expose:
+      - 6333
+      - 6334
+      - 6335
+    volumes:
+      - "qdrant-storage:/qdrant/storage"
+      - "./config/qdrant/config/config.yaml:/qdrant/config/production.yaml"
+      - "../certs:/tls:ro"
+    healthcheck:
+      <<: [*defaultHealthCheck]
+      test: ["CMD-SHELL", "curl -f http://localhost:6333/healthz"]
+      start_period: 10s
+
+  redis:
+    extends:
+      file: base.yml
+      service: stumpContainer
+
+    image: "redis:${VERSION_TAG_IO_BACKEND_REDIS:-8}"
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}379:6379"
+    volumes:
+      - "../certs:/tls:ro"
+      - "../CAs:/certs:ro"
+    command: >
+      redis-server
+        --locale-collate "C"
+        --tls-port 6379
+        --port 0
+        --tls-cert-file /tls/server.crt
+        --tls-key-file /tls/server.key
+        --tls-ca-cert-file /certs/ca.crt
+        --tls-auth-clients no
+    healthcheck:
+      <<: [*defaultHealthCheck]
+      test: ["CMD", "redis-cli",
+             "--tls",
+             "--cert", "/tls/server.crt",
+             "--key", "/tls/server.key",
+             "--cacert", "/certs/ca.crt",
+             "ping"]
+      start_period: 10s
+  s3:
+    extends:
+      file: base.yml
+      service: httpsContainer
+
+    image: "minio/minio:${VERSION_TAG_IO_BACKEND_S3:-RELEASE.2024-12-13T22-19-12Z}"
+    volumes:
+      - "./data/s3:/data"
+    environment:
+      MINIO_ROOT_USER: "${S3_ACCESS_KEY}"
+      MINIO_ROOT_PASSWORD: "${S3_SECRET_KEY}"
+    command: server --console-address ":4901" /data
+    healthcheck:
+      <<: [*defaultHealthCheck]
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live"]
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}900:9000"
+      - "${INSTANCE_PORT_PREFIX:-30}901:4901"
+
+  solr:
+    extends:
+      file: base.yml
+      service: httpsContainer
+
+    image: "solr:${VERSION_TAG_IO_BACKEND_SOLR:-9}"
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}983:8983"
+    volumes:
+      - "solr-data:/var/solr"
+      - "/etc/ssl/certs:/etc/solr/ssl:ro"
+    environment:
+      SOLR_AUTH_TYPE: basic
+      SOLR_AUTHENTICATION_OPTS: "-Dbasicauth=${SOLR_USER}:${SOLR_PASS}"
+      # Siehe https://github.com/apache/lucene-solr/pull/2304/files
+      SOLR_OPTS: "-XX:-UseLargePages"
+      # Siehe: https://tinyurl.com/aw-solr-heap
+      SOLR_HEAP: ${SOLR_HEAP:-1G}
+    ulimits: #Nicht-Setzen dieser Werte heißt 1024 und das gibt ne dicke Warnung beim SOLR-Start!
+      nofile:
+        soft: 65000
+        hard: 65000
+    healthcheck:
+      <<: [*defaultHealthCheck]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://localhost:8983/solr/reports/admin/ping?wt=json",
+        ]
+    command:
+      - bash
+      - "-c"
+      - "precreate-core io3-objects; exec solr -f"
+
+volumes:
+  qdrant-storage:
+  solr-data:
+  postgre-data:

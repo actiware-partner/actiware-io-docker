@@ -1,0 +1,6 @@
+service:
+  enable_tls: true
+
+tls:
+  cert: /tls/server.crt
+  key: /tls/server.key

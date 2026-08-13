@@ -1,0 +1,44 @@
+services:
+  stumpContainer:
+    image: alpine #dummy
+    restart: unless-stopped
+    logging:
+      driver: "${LOG_SERVICE_DRIVER:-json-file}"
+      options:
+        max-size: "${LOG_SERVICE_SIZE:-50m}"
+        max-file: "${LOG_SERVICE_FILES:-3}"
+        compress: "true"
+    environment:
+      TZ: "${TIMEZONE:-Europe/Berlin}"
+      LANG: "${LANGUAGE:-en_US.UTF-8}"
+
+  baseContainer:
+    extends:
+      service: stumpContainer
+    volumes:
+      - "/etc/ssl/certs:/etc/ssl/certs:ro"
+      - "../CAs:/usr/share/ca-certificates/actiware:ro"
+
+  httpsContainer:
+    extends:
+      service: baseContainer
+
+    group_add: &runhttps
+      - 3000
+    volumes: &ownCerts
+      - type: bind
+        source: ../certs/server.crt
+        target: /certs/server.crt
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../certs/server.key
+        target: /certs/server.key
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./config/https/appsettings.ssl.json
+        target: /app/appsettings.Production.json
+        bind:
+          create_host_path: false
+

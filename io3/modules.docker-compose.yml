@@ -1,0 +1,49 @@
+x-logEnv: &logEnv
+  SERVICE__SERILOG__MINIMUMLEVEL__DEFAULT: "Information"
+  SERVICE__SERILOG__MINIMUMLEVEL__OVERRIDE__MICROSOFT.ENTITYFRAMEWORKCORE: "Warning"
+  SERVICE__SERILOG__MINIMUMLEVEL__OVERRIDE__MICROSOFT.ENTITYFRAMEWORKCORE.DATABASE.COMMAND: "Warning"
+  SERVICE__LOGGING__LOGLEVEL__DEFAULT: "Information"
+  SERVICE__LOGGING__LOGLEVEL__MICROSOFT.ASPNETCORE: "Information"
+
+x-secureEnv: &secureEnv
+  SERVICE__SECURITY__ENCRYPTIONKEY: "${ENCRYPTION_KEY}"
+  SERVICE__SECURITY__SHAREDSECRET: "${SHARED_SECRET}"
+  SERVICE__SECURITY__CRYPTKEY: "${ENCRYPTION_KEY}"
+
+x-identityEnv: &identityEnv
+  SERVICE__ENDPOINTS__IDENTITYSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}001"
+  SERVICE__ENDPOINTS__IDENTITYSERVICE__CLIENTID: "${CLIENT_ID}"
+  SERVICE__ENDPOINTS__IDENTITYSERVICE__CLIENTSECRET: "${CLIENT_SECRET}"
+  SERVICE__ENDPOINTS__IDENTITYSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
+
+x-projectEnv: &projectEnv
+  SERVICE__ENDPOINTS__PROJECTSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}002"
+  SERVICE__ENDPOINTS__PROJECTSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
+services:
+  # Service: io-module-core
+  io-module-core:
+    extends:
+      file: base.yml
+      service: httpsContainer
+
+    image: "actiwareio/io-module-core:${VERSION_TAG_IO_MODULE_CORE:-3-developer}"
+    environment:
+      <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv]
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}102:443"
+    volumes:
+      - ../imports:/imports:rw
+
+  # Service: io-module-output-manager
+  io-module-output-manager:
+    extends:
+      file: base.yml
+      service: httpsContainer
+
+    image: "actiwareio/io-module-output-manager:${VERSION_TAG_IO_MODULE_OUTPUT_MANAGER:-3-developer}"
+    environment:
+      <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv]
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}134:443"
+    volumes:
+      - ../imports:/imports:rw
