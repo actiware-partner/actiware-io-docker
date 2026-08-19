@@ -409,6 +409,7 @@ services:
     environment:
       <<:
         [
+          *dbEnv,
           *logEnv,
           *secureEnv,
           *redisEnv,

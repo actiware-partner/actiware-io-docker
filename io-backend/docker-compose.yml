@@ -68,7 +68,7 @@ services:
         --port 0
         --tls-cert-file /tls/server.crt
         --tls-key-file /tls/server.key
-        --tls-ca-cert-file /certs/ca.crt
+        --tls-ca-cert-file /tls/ca.crt
         --tls-auth-clients no
     healthcheck:
       <<: [*defaultHealthCheck]
@@ -76,7 +76,7 @@ services:
              "--tls",
              "--cert", "/tls/server.crt",
              "--key", "/tls/server.key",
-             "--cacert", "/certs/ca.crt",
+             "--cacert", "/tls/ca.crt",
              "ping"]
       start_period: 10s
   s3:
@@ -125,7 +125,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -f http://localhost:8983/solr/reports/admin/ping?wt=json",
+          "curl -f -u ${SOLR_USER}:${SOLR_PASS} http://localhost:8983/solr/reports/admin/ping?wt=json",
         ]
     command:
       - bash
@@ -150,10 +150,11 @@ services:
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "false"
       AUTHENTICATION_APIKEY_ENABLED: "true"
       AUTHENTICATION_APIKEY_ALLOWED_KEYS: "${WEAVIATE_API_KEY}"
-
+      AUTHENTICATION_APIKEY_USERS: "admin"
       # Objekte werden mit selbst erzeugten Vektoren importiert
       DEFAULT_VECTORIZER_MODULE: none
       LOG_FORMAT: "text"
+      LOG_LEVEL: "info"
 
       # Optional
       DISABLE_TELEMETRY: "true"
