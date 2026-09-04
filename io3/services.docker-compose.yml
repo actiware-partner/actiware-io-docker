@@ -21,7 +21,7 @@ x-s3Env: &s3Env
   SERVICE__ENDPOINTS__S3__URL: "http://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}900"
   SERVICE__ENDPOINTS__S3__ACCESSKEY: "${S3_ACCESS_KEY}"
   SERVICE__ENDPOINTS__S3__SECRETKEY: "${S3_SECRET_KEY}"
-  SERVICE__ENDPOINTS__S3__REGION: "${S3_REGION:-eu-central-1}" 
+  SERVICE__ENDPOINTS__S3__REGION: "${S3_REGION:-eu-central-1}"
 
 x-solrEnv: &solrEnv
   SERVICE__ENDPOINTS__SOLR__URL: "http://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}983/solr"
@@ -39,6 +39,13 @@ x-identityEnv: &identityEnv
   SERVICE__ENDPOINTS__IDENTITYSERVICE__CLIENTSECRET: "${CLIENT_SECRET}"
   SERVICE__ENDPOINTS__IDENTITYSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
   SERVICE__ENDPOINTS__IDENTITYSERVICE__SSOALLOWEDORIGINS: "https://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}201;https://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}202"
+
+x-webClientPublic: &webClientPublic
+  SERVICE__WEBCLIENT__PUBLICADDRESS: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}202"
+
+x-notificationEnv: &notificationEnv
+  SERVICE__ENDPOINTS__NOTIFICATIONSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}004"
+  SERVICE__ENDPOINTS__NOTIFICATIONSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
 
 x-ocrEnv: &ocrEnv
   SERVICE__ENDPOINTS__OCRSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}005"
@@ -106,7 +113,18 @@ services:
 
     image: "actiwareio/io-vault-service:${VERSION_TAG_IO_SERVICE_VAULT:-3-developer}"
     environment:
-      <<: [*dbEnv, *secureEnv, *redisEnv, *s3Env, *identityEnv, *vaultEnv, *logEnv]
+      <<:
+        [
+          *dbEnv,
+          *secureEnv,
+          *redisEnv,
+          *s3Env,
+          *identityEnv,
+          *vaultEnv,
+          *logEnv,
+          *notificationEnv,
+          *webClientPublic,
+        ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-vault"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-vault"
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
@@ -128,7 +146,7 @@ services:
     group_add:
       - 0 # needed for Keytab access — not ideal, could be replaced by a script setting permissions to xx4
     environment:
-      <<: [*dbEnv, *secureEnv, *redisEnv, *logEnv]
+      <<: [*dbEnv, *secureEnv, *redisEnv, *logEnv, *notificationEnv]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-identity"
       SERVICE__DEFAULT__USERNAME: "${DEFAULT_USER}"
       SERVICE__DEFAULT__PASSWORD: "${DEFAULT_PASS}"
@@ -172,6 +190,7 @@ services:
           *docsEnv,
           *workflowEnv,
           *inboxEnv,
+          *notificationEnv,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-project"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-project"
@@ -186,14 +205,30 @@ services:
       io-identity-service:
         condition: service_started
 
- #Service: io-ocr-service
+  #Service: io-ocr-service
   io-ocr-service:
     extends:
       file: base.yml
       service: httpsContainer
     image: "actiwareio/io-ocr-service:${VERSION_TAG_IO_SERVICE_OCR:-3-developer}"
     environment:
-      <<: [*dbEnv, *logEnv, *secureEnv, *s3Env, *redisEnv, *identityEnv, *sdkEnv, *vaultEnv, *aiAgentEnv, *aiRagEnv, *workerQueueEnv, *objectStoreEnv, *inboxEnv]
+      <<:
+        [
+          *dbEnv,
+          *logEnv,
+          *secureEnv,
+          *s3Env,
+          *redisEnv,
+          *identityEnv,
+          *sdkEnv,
+          *vaultEnv,
+          *aiAgentEnv,
+          *aiRagEnv,
+          *workerQueueEnv,
+          *objectStoreEnv,
+          *inboxEnv,
+          *notificationEnv,
+        ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-ocr"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-ocr"
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
@@ -218,7 +253,7 @@ services:
       SERVICE__QUEUES__TICKETS__RETRY__MAXRETRIES: 3
       SERVICE__QUEUES__TICKETS__RETRY__RETRYSCHEDULE: "*/5 * * * *"
       SERVICE__QUEUES__TICKETS__RETRY__SCHEDULE: "*/5 * * * *"
-      
+
       SERVICE__QUEUES__NOTIFICATION__PROCESSING__QUEUENAME: "default"
       SERVICE__QUEUES__NOTIFICATION__PROCESSING__MAXDEGREEOFPARALLELISM: 5
       SERVICE__QUEUES__NOTIFICATION__PROCESSING__POLLINTERVALSECONDS: 10
@@ -231,7 +266,7 @@ services:
       SERVICE__QUEUES__NOTIFICATION__RETRY__POLLINTERVALSECONDS: 10
       SERVICE__QUEUES__NOTIFICATION__RETRY__MAXRETRIES: 3
       SERVICE__QUEUES__NOTIFICATION__RETRY__RETRYSCHEDULE: "*/5 * * * *"
-      SERVICE__QUEUES__NOTIFICATION__RETRY__SCHEDULE: "*/5 * * * *"    
+      SERVICE__QUEUES__NOTIFICATION__RETRY__SCHEDULE: "*/5 * * * *"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}005:443"
     depends_on:
@@ -262,6 +297,8 @@ services:
           *aiAgentEnv,
           *aiAgentFunctionsEnv,
           *aiRagEnv,
+          *notificationEnv,
+          *webClientPublic,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-worker-queue"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-worker-queue"
@@ -271,6 +308,7 @@ services:
     depends_on:
       io-identity-service:
         condition: service_started
+
   # Service: io-ai-chat-service
   io-ai-chat-service:
     extends:
@@ -293,6 +331,8 @@ services:
           *aiRagEnv,
           *sdkEnv,
           *objectStoreEnv,
+          *notificationEnv,
+          *webClientPublic,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-ai-chat"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-ai-chat"
@@ -323,6 +363,8 @@ services:
           *ocrEnv,
           *sdkEnv,
           *objectStoreEnv,
+          *notificationEnv,
+          *webClientPublic,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-workflow"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-workflow"
@@ -342,7 +384,17 @@ services:
     image: "actiwareio/io-data-flow-service:${VERSION_TAG_IO_SERVICE_DATA_FLOW:-3-developer}"
     environment:
       <<:
-        [*dbEnv, *logEnv, *secureEnv, *s3Env, *identityEnv, *vaultEnv, *sdkEnv, *redisEnv]
+        [
+          *dbEnv,
+          *logEnv,
+          *secureEnv,
+          *s3Env,
+          *identityEnv,
+          *vaultEnv,
+          *sdkEnv,
+          *redisEnv,
+          *notificationEnv,
+        ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-data-flow"
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http1AndHttp2"
     ports:
@@ -371,6 +423,9 @@ services:
           *ocrEnv,
           *sdkEnv,
           *solrEnv,
+          *workflowEnv,
+          *notificationEnv,
+          *webClientPublic,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-object-storage"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-object-storage"
@@ -389,7 +444,20 @@ services:
 
     image: "actiwareio/io-client-service:${VERSION_TAG_IO_SERVICE_CLIENT:-3-developer}"
     environment:
-      <<: [*dbEnv, *logEnv, *redisEnv, *secureEnv, *identityEnv, *vaultEnv, *s3Env, *sdkEnv, *objectStoreEnv]
+      <<:
+        [
+          *dbEnv,
+          *logEnv,
+          *redisEnv,
+          *secureEnv,
+          *identityEnv,
+          *vaultEnv,
+          *s3Env,
+          *sdkEnv,
+          *objectStoreEnv,
+          *notificationEnv,
+          *webClientPublic,
+        ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-client"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-client"
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
@@ -421,6 +489,9 @@ services:
           *docsEnv,
           *workflowEnv,
           *inboxEnv,
+          *sdkEnv,
+          *notificationEnv,
+          *webClientPublic,
         ]
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http1"
       SERVICE__ENDPOINTS__DOCUMENTVIEWER__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}019"
@@ -449,7 +520,8 @@ services:
           *s3Env,
           *identityEnv,
           *vaultEnv,
-          *sdkEnv
+          *sdkEnv,
+          *notificationEnv,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-document-viewer"
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
@@ -458,7 +530,6 @@ services:
     depends_on:
       io-identity-service:
         condition: service_started
-
 
   # Service: io-ai-rag-service
   io-ai-rag-service:
@@ -478,6 +549,8 @@ services:
           *identityEnv,
           *vaultEnv,
           *ocrEnv,
+          *sdkEnv,
+          *notificationEnv,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-ai-rag"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-ai-rag"
@@ -489,7 +562,6 @@ services:
       SERVICE__ENDPOINTS__VECTORSTORE__WEAVIATE__APIKEY: "${WEAVIATE_API_KEY}"
       SERVICE__ENDPOINTS__VECTORSTORE__WEAVIATE__URL: "http://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}050"
       SERVICE__ENDPOINTS__VECTORSTORE__WEAVIATE__GRPCPORT: "${INSTANCE_PORT_PREFIX}051"
-
 
       # Sync - Scheduler
       SERVICE__SYNC__SCHEDULER__MAXCONCURRENTMANIFESTS: 10
@@ -563,6 +635,8 @@ services:
           *dataFlowEnv,
           *objectStoreEnv,
           *workflowEnv,
+          *notificationEnv,
+          *webClientPublic,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-inbox"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-inbox"
@@ -591,6 +665,7 @@ services:
           *identityEnv,
           *vaultEnv,
           *dataFlowEnv,
+          *notificationEnv,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-sdk"
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
@@ -619,12 +694,53 @@ services:
           *redisEnv,
           *ocrEnv,
           *sdkEnv,
+          *notificationEnv,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-ai-agent-functions"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-ai-agent-functions"
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}016:443"
+    depends_on:
+      io-identity-service:
+        condition: service_started
+
+  #Service: io-notification-service
+  io-notification-service:
+    extends:
+      file: base.yml
+      service: httpsContainer
+    image: "actiwareio/io-notification-service:${VERSION_TAG_IO_SERVICE_NOTIFICATION:-3-developer}"
+    pull_policy: "daily"
+    environment:
+      <<:
+        [
+          *dbEnv,
+          *logEnv,
+          *secureEnv,
+          *s3Env,
+          *redisEnv,
+          *identityEnv,
+          *vaultEnv,
+        ]
+      SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-notification"
+      SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-backend-notification"
+      KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
+      SERVICE__ROLES: "Api,Dispatcher"
+      SERVICE__CHANNELS__EMAIL__ENABLED: true
+      SERVICE__CHANNELS__EMAIL__GRAPHTRANSPORT__TENANTID: "${SMTP_GRAPH_TENANT_ID}"
+      SERVICE__CHANNELS__EMAIL__GRAPHTRANSPORT__CLIENTID: "${SMTP_GRAPH_CLIENT_ID}"
+      SERVICE__CHANNELS__EMAIL__GRAPHTRANSPORT__CLIENTSECRET: "${SMTP_GRAPH_CLIENT_SECRET}"
+      SERVICE__CHANNELS__EMAIL__DEFAULTSENDERPROFILE__FROMADDRESS: "${SMTP_PROFILE_FROM_ADDRESS}"
+      SERVICE__CHANNELS__EMAIL__DEFAULTSENDERPROFILE__FROMDISPLAYNAME: "${SMTP_PROFILE_FROM_DISPLAYNAME}"
+      SERVICE__CHANNELS__EMAIL__DEFAULTSENDERPROFILE__TRANSPORTKIND: "${SMTP_PROFILE_FROM_TRANSPORT}"
+      SERVICE__CHANNELS__EMAIL__DEFAULTSENDERPROFILE__NAME: "${SMTP_PROFILE_FROM_NAME}"
+      SERVICE__CHANNELS__MESSAGECENTER__ENABLED: true
+      SERVICE__BLOCKEDREPORT__ENABLED: true
+      SERVICE__BLOCKEDREPORT__RECIPIENTS__0: "${SMTP_BLOCKED_REPORT_RECIPIENTS}"
+      SERVICE__RETENTION__WINDOW: "02:00-04:00"
+    ports:
+      - "${INSTANCE_PORT_PREFIX}004:443"
     depends_on:
       io-identity-service:
         condition: service_started
@@ -645,6 +761,8 @@ services:
           *redisEnv,
           *identityEnv,
           *vaultEnv,
+          *notificationEnv,
+          *webClientPublic,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-docs"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-docs"
@@ -654,4 +772,3 @@ services:
     depends_on:
       io-identity-service:
         condition: service_started
-
