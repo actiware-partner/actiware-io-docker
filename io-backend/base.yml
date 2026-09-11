@@ -17,7 +17,6 @@ services:
       service: stumpContainer
     volumes:
       - "/etc/ssl/certs:/etc/ssl/certs:ro"
-      - "/aw/CAs:/usr/share/ca-certificates/actiware:ro"
 
   httpsContainer:
     extends:
@@ -35,6 +34,11 @@ services:
       - type: bind
         source: /aw/certs/server.key
         target: /certs/server.key
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /aw/CAs/ca.crt
+        target: /aw/CAs/ca.crt
         bind:
           create_host_path: false
       - type: bind
