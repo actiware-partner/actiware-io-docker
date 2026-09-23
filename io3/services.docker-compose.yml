@@ -159,7 +159,7 @@ services:
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}001:443"
     volumes:
-      - "/aw/kerberos/:/opt/awio/keytab/"
+      - "${KERBEROS_KEYTAB_DIR:-/aw/kerberos}:/opt/awio/keytab/"
 
   # Service: io-project-service
   io-project-service:
@@ -560,7 +560,7 @@ services:
       SERVICE__ENDPOINTS__VECTORSTORE__QDRANT__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}334"
 
       SERVICE__ENDPOINTS__VECTORSTORE__WEAVIATE__APIKEY: "${WEAVIATE_API_KEY}"
-      SERVICE__ENDPOINTS__VECTORSTORE__WEAVIATE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}050"
+      SERVICE__ENDPOINTS__VECTORSTORE__WEAVIATE__URL: "http://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}050"
       SERVICE__ENDPOINTS__VECTORSTORE__WEAVIATE__GRPCPORT: "${INSTANCE_PORT_PREFIX:-30}051"
 
       # Sync - Scheduler

@@ -19,6 +19,7 @@ x-identityEnv: &identityEnv
 x-projectEnv: &projectEnv
   SERVICE__ENDPOINTS__PROJECTSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}002"
   SERVICE__ENDPOINTS__PROJECTSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
+
 services:
   # Service: io-module-core
   io-module-core:
@@ -32,7 +33,7 @@ services:
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}102:443"
     volumes:
-      - ../imports:/imports:rw
+      - "${IMPORTS_DIR:-/aw/imports}:/imports:rw"
 #    depends_on:
 #      io-project-service:
 #        condition: service_healthy
@@ -50,7 +51,7 @@ services:
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}134:443"
     volumes:
-      - ../imports:/imports:rw
+      - "${IMPORTS_DIR:-/aw/imports}:/imports:rw"
 #    depends_on:
 #      io-project-service:
 #        condition: service_healthy
