@@ -27,17 +27,17 @@ services:
       - /certs
     volumes: &ownCerts
       - type: bind
-        source: /aw/certs/server.crt
+        source: ${CERT_SERVER_CRT:-/aw/certs/server.crt}
         target: /certs/server.crt
         bind:
           create_host_path: false
       - type: bind
-        source: /aw/certs/server.key
+        source: ${CERT_SERVER_KEY:-/aw/certs/server.key}
         target: /certs/server.key
         bind:
           create_host_path: false
       - type: bind
-        source: /aw/CAs/ca.crt
+        source: ${CERT_CA_CRT:-/aw/CAs/ca.crt}
         target: /aw/CAs/ca.crt
         bind:
           create_host_path: false

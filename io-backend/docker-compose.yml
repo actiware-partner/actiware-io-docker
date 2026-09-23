@@ -44,7 +44,7 @@ services:
     volumes:
       - "qdrant-data:/qdrant/storage"
       - "./config/qdrant/config/config.yaml:/qdrant/config/production.yaml"
-      - "../certs:/tls:ro"
+      - "${CERT_DIR:-../certs}:/tls:ro"
     healthcheck:
       <<: [*defaultHealthCheck]
       test: ["CMD-SHELL", "curl -f http://localhost:6333/healthz"]
@@ -59,8 +59,8 @@ services:
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}379:6379"
     volumes:
-      - "../certs:/tls:ro"
-      - "../CAs:/aw/CAs:ro"
+      - "${CERT_DIR:-../certs}:/tls:ro"
+      - "${CA_DIR:-../CAs}:/aw/CAs:ro"
     command: >
       redis-server
         --locale-collate "C"
