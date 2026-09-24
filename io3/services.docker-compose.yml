@@ -104,6 +104,14 @@ x-vaultEnv: &vaultEnv
   SERVICE__ENDPOINTS__VAULTSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}000"
   SERVICE__ENDPOINTS__VAULTSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
 
+x-lookupEnv: &lookupEnv
+  SERVICE__ENDPOINTS__LOOKUPSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}020"
+  SERVICE__ENDPOINTS__LOOKUPSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
+
+x-integrationFlowEnv: &integrationFlowEnv
+  SERVICE__ENDPOINTS__INTEGRATIONFLOWSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}003"
+  SERVICE__ENDPOINTS__INTEGRATIONFLOWSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
+
 services:
   # Service: io-vault-service
   io-vault-service:
@@ -191,6 +199,7 @@ services:
           *workflowEnv,
           *inboxEnv,
           *notificationEnv,
+          *lookupEnv
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-project"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-project"
@@ -771,3 +780,60 @@ services:
     depends_on:
       io-identity-service:
         condition: service_started
+
+#Service: io-lookup-service
+  io-lookup-service:
+    extends:
+      file: base.yml
+      service: httpsContainer
+    image: "actiwareio/io-lookup-service:${VERSION_TAG_IO_SERVICE_LOOKUP:-3-developer}"
+    environment:
+      <<:
+        [
+          *dbEnv,
+          *logEnv,
+          *secureEnv,
+          *s3Env,
+          *redisEnv,
+          *identityEnv,
+          *vaultEnv,
+          *dataFlowEnv,
+          *sdkEnv,
+        ]
+      SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-lookup"
+      KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}020:443"
+    depends_on:
+      io-identity-service:
+        condition: service_started
+
+#Service: io-integration-flow-service
+  io-integration-flow-service:
+    extends:
+      file: base.yml
+      service: httpsContainer
+    image: "actiwareio/io-integration-flow-service:${VERSION_TAG_IO_SERVICE_INTEGRATION_FLOW:-3-developer}"
+    environment:
+      <<:
+        [
+          *dbEnv,
+          *logEnv,
+          *secureEnv,
+          *s3Env,
+          *redisEnv,
+          *identityEnv,
+          *vaultEnv,
+          *aiAgentFunctionsEnv,
+          *sdkEnv,
+          *notificationEnv,
+          *webClientPublic,
+        ]
+      SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-docs"
+      KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}003:443"
+    depends_on:
+      io-identity-service:
+        condition: service_started
+
