@@ -44,10 +44,11 @@ services:
     volumes:
       - "qdrant-data:/qdrant/storage"
       - "./config/qdrant/config/config.yaml:/qdrant/config/production.yaml"
-      - "${CERT_DIR:-../certs}:/tls:ro"
+      - "${CERT_DIR:-/aw/certs}:/tls:ro"
+      - "${CA_DIR:-/aw/CAs}:/aw/CAs:ro"
     healthcheck:
       <<: [*defaultHealthCheck]
-      test: ["CMD-SHELL", "curl -f http://localhost:6333/healthz"]
+      test: ["CMD-SHELL", "curl -f --cacert /aw/CAs/ca.crt -H 'api-key: ${QDRANT_API_KEY}' https://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}333/healthz"]
       start_period: 10s
 
   redis:
@@ -59,8 +60,8 @@ services:
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}379:6379"
     volumes:
-      - "${CERT_DIR:-../certs}:/tls:ro"
-      - "${CA_DIR:-../CAs}:/aw/CAs:ro"
+      - "${CERT_DIR:-/aw/certs}:/tls:ro"
+      - "${CA_DIR:-/aw/CAs}:/aw/CAs:ro"
     command: >
       redis-server
         --locale-collate "C"
@@ -126,7 +127,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -f -u ${SOLR_USER}:${SOLR_PASS} http://localhost:8983/solr/reports/admin/ping?wt=json",
+          "curl -f -u ${SOLR_USER}:${SOLR_PASS} http://localhost:8983/solr/${SOL_BASE_INDEXNAME:-io3-objects}/admin/ping?wt=json",
         ]
     command:
       - bash

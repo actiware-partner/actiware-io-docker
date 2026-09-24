@@ -11,7 +11,7 @@ x-secureEnv: &secureEnv
   SERVICE__SECURITY__CRYPTKEY: "${ENCRYPTION_KEY}"
 
 x-dbEnv: &dbEnv
-  SERVICE__DATABASE__SERVER: "${DATABASE_SERVER:-postgres}"
+  SERVICE__DATABASE__SERVER: "${DATABASE_SERVER}"
   SERVICE__DATABASE__PORT: "${DATABASE_PORT:-30432}"
   SERVICE__DATABASE__USERNAME: "${DATABASE_USER}"
   SERVICE__DATABASE__PASSWORD: "${DATABASE_PASS}"
@@ -199,7 +199,8 @@ services:
           *workflowEnv,
           *inboxEnv,
           *notificationEnv,
-          *lookupEnv
+          *lookupEnv,
+          *integrationFlowEnv
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-project"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-project"
@@ -800,6 +801,7 @@ services:
           *dataFlowEnv,
           *sdkEnv,
         ]
+      SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-lookup"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-lookup"
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
     ports:
@@ -829,7 +831,8 @@ services:
           *notificationEnv,
           *webClientPublic,
         ]
-      SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-docs"
+      SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-integration-flow"
+      SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-integration-flow"
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}003:443"
