@@ -185,7 +185,8 @@ services:
     extends:
       file: base.yml
       service: httpsContainer
-    image: "cr.weaviate.io/semitechnologies/reranker-transformers:${VERSION_TAG_IO_BACKEND_RERANKER:-cross-encoder-ms-marco-MiniLM-L-6-v2}"
+    
+    image: "cr.weaviate.io/semitechnologies/reranker-transformers:${VERSION_TAG_IO_BACKEND_RERANKER:-baai-bge-reranker-v2-m3}"
     restart: unless-stopped
 
     environment:
