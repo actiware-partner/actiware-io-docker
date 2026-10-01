@@ -86,7 +86,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "quay.io/minio/minio:${VERSION_TAG_IO_BACKEND_S3:-RELEASE.2024-12-13T22-19-12Z}"
+    image: "docker.io/pgsty/silo:${VERSION_TAG_IO_BACKEND_S3:-latest}"
     volumes:
       - "s3-data:/data"
     environment:
