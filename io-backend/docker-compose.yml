@@ -47,9 +47,7 @@ services:
       - "${CERT_DIR:-/aw/certs}:/tls:ro"
       - "${CA_DIR:-/aw/CAs}:/aw/CAs:ro"
     healthcheck:
-      <<: [*defaultHealthCheck]
-      test: ["CMD-SHELL", "curl -f --cacert /aw/CAs/ca.crt -H 'api-key: ${QDRANT_API_KEY}' https://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}333/healthz"]
-      start_period: 10s
+      disable: true
 
   redis:
     extends:
@@ -60,6 +58,7 @@ services:
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}379:6379"
     volumes:
+      - "redis-data:/data"
       - "${CERT_DIR:-/aw/certs}:/tls:ro"
       - "${CA_DIR:-/aw/CAs}:/aw/CAs:ro"
     command: >
@@ -177,6 +176,9 @@ services:
       - "8080"
       - --scheme
       - http
+    healthcheck:
+      <<: [*defaultHealthCheck]
+      test: ["CMD-SHELL", "wget -q --spider --no-check-certificate http://localhost:8080/v1/.well-known/ready || exit 1"]
 
     depends_on:
       - reranker-transformers
@@ -198,3 +200,4 @@ volumes:
   solr-data:
   s3-data:
   weaviate-data:
+  redis-data:
