@@ -11,7 +11,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "postgres:${VERSION_TAG_IO_BACKEND_POSTGRES:-18}"
+    image: "${VERSION_IO_BACKEND_POSTGRES:-postgres:18}"
     environment:
       LANG: "${LANG_POSTGRES:-en_US.utf8}"
       POSTGRES_USER: "${DATABASE_USER}"
@@ -30,7 +30,7 @@ services:
       file: base.yml
       service: stumpContainer
 
-    image: "qdrant/qdrant:${VERSION_TAG_IO_BACKEND_QDRANT:-v1}"
+    image: "${VERSION_IO_BACKEND_QDRANT:-qdrant/qdrant:v1}"
     environment:
       QDRANT__TELEMETRY_DISABLED: "true" # Disable telemetry for privacy
       QDRANT__SERVICE__API_KEY: "${QDRANT_API_KEY}"
@@ -54,7 +54,7 @@ services:
       file: base.yml
       service: stumpContainer
 
-    image: "redis:${VERSION_TAG_IO_BACKEND_REDIS:-8}"
+    image: "${VERSION_IO_BACKEND_REDIS:-redis:8}"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}379:6379"
     volumes:
@@ -85,7 +85,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "docker.io/pgsty/silo:${VERSION_TAG_IO_BACKEND_S3:-latest}"
+    image: "${VERSION_IO_BACKEND_S3:-docker.io/pgsty/silo:latest}"
     volumes:
       - "s3-data:/data"
     environment:
@@ -104,7 +104,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "solr:${VERSION_TAG_IO_BACKEND_SOLR:-9}"
+    image: "${VERSION_IO_BACKEND_SOLR:-solr:9}"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}983:8983"
     volumes:
@@ -138,7 +138,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "semitechnologies/weaviate:${VERSION_TAG_IO_BACKEND_WEAVIATE:-1.38.3}"
+    image: "${VERSION_IO_BACKEND_WEAVIATE:-semitechnologies/weaviate:1.38.3}"
     restart: unless-stopped
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}050:8080" # HTTP/REST
@@ -188,7 +188,7 @@ services:
       file: base.yml
       service: httpsContainer
     
-    image: "cr.weaviate.io/semitechnologies/reranker-transformers:${VERSION_TAG_IO_BACKEND_RERANKER:-baai-bge-reranker-v2-m3}"
+    image: "${VERSION_IO_BACKEND_RERANKER:-cr.weaviate.io/semitechnologies/reranker-transformers:baai-bge-reranker-v2-m3}"
     restart: unless-stopped
 
     environment:

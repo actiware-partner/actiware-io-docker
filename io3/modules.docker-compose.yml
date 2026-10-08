@@ -27,7 +27,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "actiwareio/io-module-core:${VERSION_TAG_IO_MODULE_CORE:-3-developer}"
+    image: "${VERSION_IO_MODULE_CORE:-actiwareio/io-module-core:3-latest}"
     environment:
       <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv]
     ports:
@@ -45,7 +45,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "actiwareio/io-module-output-manager:${VERSION_TAG_IO_MODULE_OUTPUT_MANAGER:-3-developer}"
+    image: "${VERSION_IO_MODULE_OUTPUT_MANAGER:-actiwareio/io-module-output-manager:3-latest}"
     environment:
       <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv]
     ports:
