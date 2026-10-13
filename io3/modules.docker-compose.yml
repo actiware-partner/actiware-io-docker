@@ -33,7 +33,11 @@ services:
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}102:443"
     volumes:
-      - "${IMPORTS_DIR:-/aw/imports}:/imports:rw"
+      - type: bind
+        source: "${IMPORTS_DIR:-/aw/imports}"
+        target: /imports
+        bind:
+          propagation: shared
 #    depends_on:
 #      io-project-service:
 #        condition: service_healthy
@@ -51,7 +55,11 @@ services:
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}134:443"
     volumes:
-      - "${IMPORTS_DIR:-/aw/imports}:/imports:rw"
+      - type: bind
+        source: "${IMPORTS_DIR:-/aw/imports}"
+        target: /imports
+        bind:
+          propagation: shared
 #    depends_on:
 #      io-project-service:
 #        condition: service_healthy
