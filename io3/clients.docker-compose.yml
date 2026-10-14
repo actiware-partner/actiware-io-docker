@@ -37,3 +37,22 @@ services:
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}202:443"
 
+  io-integration-client:
+    extends:
+      file: base.yml
+      service: httpsContainer
+
+    image: "${VERSION_IO_INTEGRATION_CLIENT:-actiwareio/io-integration-client:3-latest}"
+    environment:
+      SERVICE__ENDPOINTS__SERVICE__NAME: "Default"
+      SERVICE__ENDPOINTS__SERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}012"
+      SERVICE__ENDPOINTS__SERVICE__CLIENTID: "${CLIENT_ID}"
+      SERVICE__ENDPOINTS__SERVICE__CLIENTSECRET: "${CLIENT_SECRET}"
+    depends_on:
+      io-identity-service:
+        condition: service_started
+      io-bff-client-service:
+        condition: service_started #Eigentlich healthy, aber er hat keinen Healthcheck
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}203:443"
+
