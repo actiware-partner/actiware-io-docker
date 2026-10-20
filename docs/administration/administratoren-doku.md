@@ -1,3 +1,7 @@
+---
+title: Administration
+---
+
 # Administratoren-Dokumentation
 
 Diese Dokumentation richtet sich an IT-Techniker und Administratoren, die die ACTIWARE.IO Docker-Umgebung betreiben und verwalten.
@@ -96,7 +100,7 @@ docker compose up -d
 
 Jeder Service-Image-Pfad ist vollständig über eine ENV-Variable in der `.env` steuerbar — inkl. Registry, Image-Name und Tag:
 
-```env
+```dotenv
 # Standard (Docker Hub)
 VERSION_IO_SERVICE_PROJECT=actiwareio/io-project-service:3-latest
 

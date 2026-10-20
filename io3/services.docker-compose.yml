@@ -205,7 +205,7 @@ services:
           *notificationEnv,
           *lookupEnv,
           *integrationFlowEnv,
-          *documentViewerEnv
+          *documentViewerEnv,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-project"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-project"
@@ -776,6 +776,8 @@ services:
           *identityEnv,
           *vaultEnv,
           *notificationEnv,
+          *objectStoreEnv,
+          *workflowEnv,
           *webClientPublic,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-docs"
@@ -787,7 +789,7 @@ services:
       io-identity-service:
         condition: service_started
 
-#Service: io-lookup-service
+  #Service: io-lookup-service
   io-lookup-service:
     extends:
       file: base.yml
@@ -815,7 +817,7 @@ services:
       io-identity-service:
         condition: service_started
 
-#Service: io-integration-flow-service
+  #Service: io-integration-flow-service
   io-integration-flow-service:
     extends:
       file: base.yml

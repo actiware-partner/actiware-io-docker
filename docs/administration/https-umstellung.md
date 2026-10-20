@@ -1,3 +1,7 @@
+---
+title: HTTPS-Konfiguration
+---
+
 # HTTPS-Konfiguration
 
 Alle Services in io-backend und io3 kommunizieren ausschließlich über TLS/HTTPS. Die Zertifikate werden per Bind-Mount in die Container eingebunden und müssen auf dem Host-System an definierten Pfaden bereitliegen.
@@ -117,7 +121,7 @@ sudo update-ca-trust
 
 In `io-backend/.env` und `io3/.env` müssen die Pfade übereinstimmen:
 
-```env
+```dotenv
 CERT_SERVER_CRT=/aw/certs/server.crt
 CERT_SERVER_KEY=/aw/certs/server.key
 CERT_CA_CRT=/aw/CAs/ca.crt
