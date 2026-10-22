@@ -167,7 +167,12 @@ services:
       SERVICE__DEFAULT_VALIDITY_PERIOD: "${DEFAULT_VALIDITY_PERIOD:-86400}"
       SERVICE__SERVER_AUTH__IDENTITY_SERVICE: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}001"
       SERVICE__SERVER_AUTH__SHARED_SECRET: "${SHARED_SECRET}"
-      SERVICE__SSO_ALLOWED_ORIGINS: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}201;${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}202"
+      SERVICE__SSO_ALLOWED_ORIGINS: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}201;${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}202;${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}203"
+      # Anmelde-Rücksprungadressen der Clients mit der CLIENT_ID (Designer, Web-Client, Integration-Client, Desktop).
+      # Weitere Adressen, z. B. die der Edge-Sidebar, in ADDITIONAL_REDIRECT_URIS (siehe docs/administration/anmelde-adressen.md).
+      SERVICE__DEFAULT__WEB_CLIENT_REDIRECT_URIS: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}201/auth/callback;${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}202/oauth-callback.html;${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}203/oauth-callback.html;io3://oauth/callback;${ADDITIONAL_REDIRECT_URIS:-}"
+      # enforce (Standard) lehnt unbekannte Adressen ab; warn nur für eine kurze Umstellung, siehe Doku
+      SERVICE__OAUTH__REDIRECT_URI_CHECK: "${REDIRECT_URI_CHECK:-enforce}"
       KRB5_KTNAME: "/opt/awio/keytab/krb5.keytab"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}001:443"
