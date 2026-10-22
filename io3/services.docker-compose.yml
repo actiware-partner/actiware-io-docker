@@ -39,6 +39,7 @@ x-identityEnv: &identityEnv
   SERVICE__ENDPOINTS__IDENTITYSERVICE__CLIENTSECRET: "${CLIENT_SECRET}"
   SERVICE__ENDPOINTS__IDENTITYSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
   SERVICE__ENDPOINTS__IDENTITYSERVICE__SSOALLOWEDORIGINS: "https://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}201;https://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}202;https://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}203"
+  SERVICE__SSO_ALLOWED_ORIGINS: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}201;${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}202;https://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}203;https://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}201/auth/callback"
 
 x-webClientPublic: &webClientPublic
   SERVICE__WEBCLIENT__PUBLICADDRESS: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}202"
@@ -158,7 +159,7 @@ services:
     group_add:
       - 0 # needed for Keytab access - not ideal, could be replaced by a script setting permissions to xx4
     environment:
-      <<: [*dbEnv, *secureEnv, *redisEnv, *logEnv, *notificationEnv]
+      <<: [*dbEnv, *secureEnv, *redisEnv, *logEnv, *notificationEnv, *identityEnv]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-identity"
       SERVICE__DEFAULT__USERNAME: "${DEFAULT_USER}"
       SERVICE__DEFAULT__PASSWORD: "${DEFAULT_PASS}"
