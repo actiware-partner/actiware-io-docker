@@ -239,6 +239,8 @@ cp .env.example .env
 | `INSTANCE_PORT_PREFIX` | `30` | Port-Präfix (Prod=30, Test=40) |
 | `INSTANCE_HTTP_TYPE` | `https` | HTTP-Schema |
 | `CLIENT_ID` | `IoClient` | OAuth2 Client-ID |
+| `ADDITIONAL_REDIRECT_URIS` | — | Weitere Anmelde-Rücksprungadressen, getrennt durch `;` (z. B. Edge-Sidebar), siehe [Anmelde-Adressen](docs/administration/anmelde-adressen.md) |
+| `REDIRECT_URI_CHECK` | `enforce` | Prüfung der Anmelde-Adressen; `warn` nur kurzzeitig zur Fehlersuche |
 | `DEFAULT_VALIDITY_PERIOD` | `86400` | Token-Gültigkeit in Sekunden |
 | `DATABASE_PORT` | `30432` | PostgreSQL-Port |
 | `DATABASE_ENCODING` | `UTF8` | Datenbankzeichensatz |

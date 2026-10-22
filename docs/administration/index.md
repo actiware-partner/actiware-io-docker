@@ -50,6 +50,11 @@ Die vollständige Schritt-für-Schritt-Anleitung mit allen Variablen, Zertifikat
   - Einbindung in io-backend und io3
   - System als vertrauenswürdig einrichten
 
+- [Anmelde-Adressen](./anmelde-adressen.md)
+  - Welche Rücksprungadressen die Vorlage für die Anmeldung einträgt
+  - Edge-Sidebar und weitere Adressen ergänzen
+  - Warum man die Prüfung nicht abschalten sollte
+
 ## Weiterführend
 
 - [Speichermangel und unerwartete Neustarts](/handbuch/troubleshooting/out-of-memory): Speicher der Docker-VM, Speicherlimits je Container, Aufräumen von Images und Logs.
