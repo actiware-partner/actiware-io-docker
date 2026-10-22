@@ -4,6 +4,10 @@
 
 # Active .env files with real credentials - never commit these!
 **/.env
+**/.env.bak-*
+
+# Installationsnachweis von setup.sh (enthält Kennwörter im Klartext)
+/INSTALLATIONSNACHWEIS.md
 
 # =============================================================================
 # CERTIFICATES & KEYS

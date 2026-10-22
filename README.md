@@ -9,6 +9,7 @@ Es enthält alle notwendigen Docker Compose Dateien, Beispielkonfigurationen und
 
 ```
 actiware-io-docker/
+├── setup.sh                        # Geführte Einrichtung (erzeugt .env-Dateien und Installationsnachweis)
 ├── io-backend/                     # Infrastruktur-Stack (PostgreSQL, Redis, Solr, S3, Qdrant, Weaviate)
 │   ├── docker-compose.yml
 │   ├── .env.example
@@ -40,6 +41,28 @@ actiware-io-docker/
 - Docker Compose Plugin >= 2.x
 - Gültige TLS-Zertifikate (selbstsigniert oder CA-signiert)
 - Zugang zur ACTIWARE Container Registry (`actiwareio/` auf Docker Hub)
+
+---
+
+## Schnellstart — geführte Einrichtung
+
+Das Skript `setup.sh` ersetzt das manuelle Befüllen der `.env`-Dateien (Schritt 1.2 und 2.2):
+
+```bash
+./setup.sh
+```
+
+- fragt die Eckdaten ab (Hostname, Port-Präfix, Benutzernamen, E-Mail, optional KI und OCR)
+- schlägt für jedes Kennwort bzw. jeden Schlüssel einen zufälligen Wert vor: `Enter` übernimmt, `n` erzeugt einen neuen Vorschlag, `e` erlaubt die Eingabe eines eigenen Werts
+- erzeugt `io-backend/.env` und `io3/.env` aus den `.env.example`-Vorlagen, gemeinsame Zugangsdaten (Datenbank, S3, Solr, Qdrant, Weaviate) sind in beiden Dateien identisch
+- erzeugt `INSTALLATIONSNACHWEIS.md` mit allen Kennwörtern im Klartext
+
+> [!CAUTION]
+> `INSTALLATIONSNACHWEIS.md` dient nur als Installationsnachweis. Kennwörter daraus **sofort in einem Passwortmanager sichern** und die Datei anschließend **löschen** (`rm INSTALLATIONSNACHWEIS.md`).
+
+Läuft der Backend-Stack auf einem anderen Server, im Skript „nur io3“ wählen und die gemeinsamen Zugangsdaten aus der `io-backend/.env` eingeben. Eine bereits vorhandene `.env` wird vor dem Überschreiben als `.env.bak-<Zeitstempel>` gesichert.
+
+Danach weiter mit den Zertifikaten (Schritt 1.1) und dem Start der Stacks (1.3, 2.3). Die manuelle Variante bleibt unten beschrieben.
 
 ---
 

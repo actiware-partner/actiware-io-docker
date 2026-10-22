@@ -1,0 +1,46 @@
+name: Synchronize documentation
+
+# Reports changes under docs/ to the central documentation repository
+# actiware-io/docs. This repository lives in the actiware-partner organization
+# and the target in actiware-io, so owner and target repository are fixed
+# instead of being derived from github.repository_owner.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  notify-central-documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create GitHub App token for actiware-io/docs
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.ACTIWARE_DOCS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.ACTIWARE_DOCS_APP_PRIVATE_KEY }}
+          owner: actiware-io
+          repositories: docs
+          permission-contents: write
+      - name: Request documentation synchronization
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          # Component ID from docs-sync/components.json in actiware-io/docs.
+          COMPONENT: docker
+          REF: ${{ github.sha }}
+          # The services report their own ports; nothing to report here.
+          PORTS: ""
+        run: |
+          gh api \
+            --method POST \
+            "repos/actiware-io/docs/dispatches" \
+            -f event_type='component-docs-sync' \
+            -f "client_payload[component]=$COMPONENT" \
+            -f "client_payload[ref]=$REF" \
+            -f "client_payload[ports]=$PORTS"

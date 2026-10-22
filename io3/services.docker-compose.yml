@@ -104,6 +104,10 @@ x-vaultEnv: &vaultEnv
   SERVICE__ENDPOINTS__VAULTSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}000"
   SERVICE__ENDPOINTS__VAULTSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
 
+x-documentViewerEnv: &documentViewerEnv
+  SERVICE__ENDPOINTS__DOCUMENTVIEWERSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}019"
+  SERVICE__ENDPOINTS__DOCUMENTVIEWERSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
+
 x-lookupEnv: &lookupEnv
   SERVICE__ENDPOINTS__LOOKUPSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}020"
   SERVICE__ENDPOINTS__LOOKUPSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
@@ -163,6 +167,7 @@ services:
       SERVICE__DEFAULT_VALIDITY_PERIOD: "${DEFAULT_VALIDITY_PERIOD:-86400}"
       SERVICE__SERVER_AUTH__IDENTITY_SERVICE: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}001"
       SERVICE__SERVER_AUTH__SHARED_SECRET: "${SHARED_SECRET}"
+      SERVICE__SSO_ALLOWED_ORIGINS: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}201;${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}202"
       KRB5_KTNAME: "/opt/awio/keytab/krb5.keytab"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}001:443"
@@ -200,7 +205,8 @@ services:
           *inboxEnv,
           *notificationEnv,
           *lookupEnv,
-          *integrationFlowEnv
+          *integrationFlowEnv,
+          *documentViewerEnv,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-project"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-project"
@@ -771,6 +777,8 @@ services:
           *identityEnv,
           *vaultEnv,
           *notificationEnv,
+          *objectStoreEnv,
+          *workflowEnv,
           *webClientPublic,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-docs"
@@ -782,7 +790,7 @@ services:
       io-identity-service:
         condition: service_started
 
-#Service: io-lookup-service
+  #Service: io-lookup-service
   io-lookup-service:
     extends:
       file: base.yml
@@ -810,7 +818,7 @@ services:
       io-identity-service:
         condition: service_started
 
-#Service: io-integration-flow-service
+  #Service: io-integration-flow-service
   io-integration-flow-service:
     extends:
       file: base.yml

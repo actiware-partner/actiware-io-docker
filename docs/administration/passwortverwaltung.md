@@ -1,3 +1,7 @@
+---
+title: Passwortverwaltung
+---
+
 # Passwortverwaltung und sicherheitsrelevante Einstellungen
 
 Diese Dokumentation beschreibt alle sicherheitsrelevanten Variablen beider Stacks (io-backend und io3), die vor dem ersten Start gesetzt werden müssen.
@@ -117,6 +121,10 @@ Datei: `io3/.env`
 ---
 
 ## 3. Vorgehen vor dem ersten Start
+
+**Empfohlen:** `./setup.sh` im Repository-Wurzelverzeichnis ausführen. Das Skript fragt die Eckdaten ab, schlägt Kennwörter und Schlüssel in der Länge und dem Format der Empfehlungen aus Abschnitt 4 vor (Bestätigung oder eigene Eingabe möglich), schreibt beide `.env`-Dateien und legt `INSTALLATIONSNACHWEIS.md` an. Diese Datei enthält alle Kennwörter im Klartext: sichern, dann löschen.
+
+**Manuell:**
 
 1. `cp io-backend/.env.example io-backend/.env`
 2. `cp io3/.env.example io3/.env`
