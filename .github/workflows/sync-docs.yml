@@ -18,12 +18,28 @@ permissions:
 jobs:
   notify-central-documentation:
     runs-on: ubuntu-latest
+    env:
+      # Same names as in the actiware-io repositories, where the client id is a secret. A variable of the same name is
+      # accepted as well. Both have to be set in this repository (or the actiware-partner organization): secrets of
+      # actiware-io are not visible here.
+      DOCS_APP_CLIENT_ID: ${{ secrets.ACTIWARE_DOCS_APP_CLIENT_ID || vars.ACTIWARE_DOCS_APP_CLIENT_ID }}
+      DOCS_APP_PRIVATE_KEY_SET: ${{ secrets.ACTIWARE_DOCS_APP_PRIVATE_KEY != '' }}
     steps:
+      - name: Check credentials of the docs GitHub App
+        run: |
+          missing=""
+          [ -n "$DOCS_APP_CLIENT_ID" ] || missing="$missing ACTIWARE_DOCS_APP_CLIENT_ID"
+          [ "$DOCS_APP_PRIVATE_KEY_SET" = "true" ] || missing="$missing ACTIWARE_DOCS_APP_PRIVATE_KEY"
+          if [ -n "$missing" ]; then
+            echo "::error title=Docs-Sync not configured::Missing repository or organization secrets:$missing. Add them under Settings > Secrets and variables > Actions of actiware-partner/actiware-io-docker (same values as in actiware-io)."
+            exit 1
+          fi
+
       - name: Create GitHub App token for actiware-io/docs
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          client-id: ${{ vars.ACTIWARE_DOCS_APP_CLIENT_ID }}
+          client-id: ${{ env.DOCS_APP_CLIENT_ID }}
           private-key: ${{ secrets.ACTIWARE_DOCS_APP_PRIVATE_KEY }}
           owner: actiware-io
           repositories: docs
