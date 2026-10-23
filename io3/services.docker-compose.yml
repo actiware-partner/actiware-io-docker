@@ -868,3 +868,34 @@ services:
     depends_on:
       io-identity-service:
         condition: service_started
+
+  #Service: io-ai-transcription-service
+  io-ai-transcription-service:
+    extends:
+      file: base.yml
+      service: httpsContainer
+    image: "${VERSION_IO_SERVICE_AI_TRANSCRIPTION:-actiwareio/io-ai-transcription-service:3-latest}"
+    pull_policy: "daily"
+    environment:
+      <<:
+        [
+          *dbEnv,
+          *logEnv,
+          *secureEnv,
+          *s3Env,
+          *redisEnv,
+          *identityEnv,
+          *vaultEnv,
+          *sdkEnv,
+          *notificationEnv,
+          *webClientPublic,
+        ]
+      SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-ai-transcription"
+      KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
+      SERVICE__WORKER__SLOTS: "2"
+      SERVICE__WORKER__HIGHPRIORITYSLOTS: "1"
+    ports:
+      - "${INSTANCE_PORT_PREFIX}021:443"
+    depends_on:
+      io-identity-service:
+        condition: service_started
