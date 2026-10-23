@@ -101,6 +101,10 @@ x-aiAgentFunctionsEnv: &aiAgentFunctionsEnv
   SERVICE__ENDPOINTS__AIAGENTFUNCTIONSSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}016"
   SERVICE__ENDPOINTS__AIAGENTFUNCTIONSSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
 
+x-aiTranscriptionEnv: &aiTranscriptionEnv
+  SERVICE__ENDPOINTS__AITRANSCRIPTIONSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}021"
+  SERVICE__ENDPOINTS__AITRANSCRIPTIONSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
+
 x-vaultEnv: &vaultEnv
   SERVICE__ENDPOINTS__VAULTSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}000"
   SERVICE__ENDPOINTS__VAULTSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
@@ -159,7 +163,8 @@ services:
     group_add:
       - 0 # needed for Keytab access - not ideal, could be replaced by a script setting permissions to xx4
     environment:
-      <<: [*dbEnv, *secureEnv, *redisEnv, *logEnv, *notificationEnv, *identityEnv]
+      <<:
+        [*dbEnv, *secureEnv, *redisEnv, *logEnv, *notificationEnv, *identityEnv]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-identity"
       SERVICE__DEFAULT__USERNAME: "${DEFAULT_USER}"
       SERVICE__DEFAULT__PASSWORD: "${DEFAULT_PASS}"
@@ -204,6 +209,7 @@ services:
           *aiAgentEnv,
           *aiAgentFunctionsEnv,
           *aiRagEnv,
+          *aiTranscriptionEnv,
           *dataFlowEnv,
           *objectStoreEnv,
           *docsEnv,
@@ -246,6 +252,7 @@ services:
           *vaultEnv,
           *aiAgentEnv,
           *aiRagEnv,
+          *aiTranscriptionEnv,
           *workerQueueEnv,
           *objectStoreEnv,
           *inboxEnv,
@@ -352,6 +359,7 @@ services:
           *dataFlowEnv,
           *aiRagEnv,
           *sdkEnv,
+          *docsEnv,
           *objectStoreEnv,
           *notificationEnv,
           *webClientPublic,
@@ -446,6 +454,7 @@ services:
           *sdkEnv,
           *solrEnv,
           *workflowEnv,
+          *docsEnv,
           *notificationEnv,
           *webClientPublic,
         ]
@@ -507,10 +516,13 @@ services:
           *vaultEnv,
           *objectStoreEnv,
           *aiAgentEnv,
+          *aiTranscriptionEnv,
           *clientSrvEnv,
           *docsEnv,
           *workflowEnv,
           *inboxEnv,
+          *lookupEnv,
+          *integrationFlowEnv,
           *sdkEnv,
           *notificationEnv,
           *webClientPublic,
@@ -570,6 +582,7 @@ services:
           *redisEnv,
           *identityEnv,
           *vaultEnv,
+          *docsEnv,
           *ocrEnv,
           *sdkEnv,
           *notificationEnv,
@@ -782,6 +795,8 @@ services:
           *redisEnv,
           *identityEnv,
           *vaultEnv,
+          *aiRagEnv,
+          *aiTranscriptionEnv,
           *notificationEnv,
           *objectStoreEnv,
           *workflowEnv,
