@@ -7,7 +7,8 @@ x-logEnv: &logEnv
 
 x-secureEnv: &secureEnv
   SERVICE__SECURITY__ENCRYPTIONKEY: "${ENCRYPTION_KEY}"
-  SERVICE__SECURITY__SHAREDSECRET: "${SHARED_SECRET}"
+  # Schlüssel, mit dem der Vault die Sicherheitsdaten der Services entschlüsselt: muss dem CryptKey entsprechen, nicht dem SHARED_SECRET
+  SERVICE__SECURITY__SHAREDSECRET: "${ENCRYPTION_KEY}"
   SERVICE__SECURITY__CRYPTKEY: "${ENCRYPTION_KEY}"
 
 x-dbEnv: &dbEnv

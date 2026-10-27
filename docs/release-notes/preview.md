@@ -45,6 +45,7 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 - Docs Service: Verknüpfungen zu Business-Objekten und Workflows werden nicht mehr als defekt gemeldet, weil die Endpunkte von Object Storage und Workflow Service gesetzt sind (#1)
 - Document Viewer Service: Der Project Service verwendet das gemeinsame Secret (`SHARED_SECRET`) statt des Client-Secrets
 - Identity Service erhält seine eigene Endpunkt-Konfiguration, die SSO-Freigaben umfassen nun auch Integration-Client und Anmelde-Callback
+- Vault Service: `SERVICE__SECURITY__SHAREDSECRET` erhält in `x-secureEnv` den `ENCRYPTION_KEY` statt des `SHARED_SECRET`. Mit dem `SHARED_SECRET` scheiterten Publish und Test-Publish mit `ERROR_SHARED_DECRYPTION_FAILED`, weil der Vault die Sicherheitsdaten des Project Service nicht entschlüsseln konnte
 - Log-Level-Einstellungen greifen wieder: SQL-Befehle erscheinen nicht mehr auf Stufe `Information`
 - Importverzeichnis wird für Core-Modul und Output Manager mit geteilter Mount-Propagation eingebunden, nachträglich eingehängte Laufwerke sind damit im Container sichtbar
 - Solr-Healthcheck nutzt die Zugangsdaten und den tatsächlich angelegten Core (`SOL_BASE_INDEXNAME`)
