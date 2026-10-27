@@ -28,6 +28,7 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 - Notification Service mit E-Mail-Versand über Microsoft Graph, inklusive Absenderprofil und Empfänger für Sperrberichte
 - Lookup Service und Integration Flow Service als neue Services
 - Integration-Client als eigener Client (Port `…203`), inklusive SSO-Freigabe im Identity Service
+- Eigener Schlüssel `VAULT_ENCRYPTION_KEY` für die gespeicherten Zugangsdaten des Vault Service, getrennt vom `ENCRYPTION_KEY` der übrigen Services; `setup.sh` erzeugt ihn für neue Installationen **[Sicherheit]**
 
 ## Improvements
 
@@ -61,3 +62,4 @@ Dieses Preview ersetzt die Docker-Umgebung von ACTIWARE.IO 3 vollständig. Ein U
 - **Pfade:** Zertifikate, CA, Kerberos-Keytab und Importe werden standardmäßig unter `/aw/…` auf dem Host erwartet statt relativ zum Repository.
 - **Anmeldung:** Ab Identity Service 3.0.9 schlägt die Anmeldung mit `Invalid redirect_uri` fehl, wenn eine Client-Adresse fehlt. Zusätzliche Adressen in `ADDITIONAL_REDIRECT_URIS` eintragen, siehe „Anmelde-Adressen“.
 - **Logging:** Die Serilog-Variablen heißen `SERILOG__…` statt `SERVICE__SERILOG__…`. Eigene Overrides entsprechend umbenennen.
+- **Vault-Schlüssel:** Bestehende Installationen lassen `VAULT_ENCRYPTION_KEY` leer, der Vault verwendet dann weiter den `ENCRYPTION_KEY`. Seine gespeicherten Zugangsdaten sind mit diesem Schlüssel verschlüsselt; ein neuer Wert machte sie unlesbar.

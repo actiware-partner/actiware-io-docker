@@ -52,9 +52,13 @@ Datei: `io3/.env`
 | Variable | Pflicht | Beschreibung |
 |---|---|---|
 | `SHARED_SECRET` | ✅ | Shared Secret für interne Service-to-Service-Kommunikation — 32 Zeichen HEX |
-| `ENCRYPTION_KEY` | ✅ | Schlüssel für Datenverschlüsselung at rest — 32 Zeichen HEX |
+| `ENCRYPTION_KEY` | ✅ | Schlüssel für Datenverschlüsselung at rest — 32 Zeichen HEX. Mit ihm verschlüsseln die Services auch die Sicherheitsdaten, die sie dem Vault senden |
+| `VAULT_ENCRYPTION_KEY` | ➖ | Eigener Schlüssel des Vault für seine gespeicherten Zugangsdaten — 32 Zeichen HEX. Leer: `ENCRYPTION_KEY` |
 | `CLIENT_SECRET` | ✅ | OAuth2 Client-Secret für inter-Service-Authentifizierung |
 | `CLIENT_ID` | ➖ | OAuth2 Client-ID — Default: `IoClient` |
+
+> [!WARNING]
+> `ENCRYPTION_KEY` und `VAULT_ENCRYPTION_KEY` nach der Inbetriebnahme nicht mehr ändern. Bestehende Installationen lassen `VAULT_ENCRYPTION_KEY` leer: Der Vault hat seine Zugangsdaten bisher mit dem `ENCRYPTION_KEY` verschlüsselt, mit einem neuen Wert wären sie nicht mehr lesbar.
 
 ### Standard-Admin-Zugang
 
@@ -137,7 +141,7 @@ Datei: `io3/.env`
 
 ## 4. Empfehlungen zur Passwortsicherheit
 
-- `SHARED_SECRET` und `ENCRYPTION_KEY`: mindestens 32 Zeichen, HEX-Format — Generator: https://www.browserling.com/tools/random-hex
+- `SHARED_SECRET`, `ENCRYPTION_KEY` und `VAULT_ENCRYPTION_KEY`: mindestens 32 Zeichen, HEX-Format — Generator: https://www.browserling.com/tools/random-hex
 - `S3_ACCESS_KEY`: GUID oder sprechender Name — Generator: https://www.guidgenerator.com
 - `S3_SECRET_KEY`: mindestens 32 Zeichen, HEX oder zufällig
 - `DATABASE_PASS`, `CLIENT_SECRET`, `QDRANT_API_KEY`, `WEAVIATE_API_KEY`: mindestens 20 Zeichen, Groß-/Kleinbuchstaben, Zahlen, Sonderzeichen
