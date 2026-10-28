@@ -6,8 +6,7 @@ x-logEnv: &logEnv
   SERVICE__LOGGING__LOGLEVEL__MICROSOFT.ASPNETCORE: "Information"
 
 x-secureEnv: &secureEnv
-  SERVICE__SECURITY__ENCRYPTIONKEY: "${ENCRYPTION_KEY}"
-  # Schlüssel, mit dem der Vault die Sicherheitsdaten der Services entschlüsselt: muss dem CryptKey entsprechen, nicht dem SHARED_SECRET
+  SERVICE__SECURITY__ENCRYPTIONKEY: "${VAULT_ENCRYPTION_KEY:-${ENCRYPTION_KEY}}"
   SERVICE__SECURITY__SHAREDSECRET: "${ENCRYPTION_KEY}"
   SERVICE__SECURITY__CRYPTKEY: "${ENCRYPTION_KEY}"
 
@@ -145,8 +144,6 @@ services:
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-vault"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-vault"
-      # Eigener Schlüssel für die gespeicherten Zugangsdaten des Vault; leer: ENCRYPTION_KEY
-      SERVICE__SECURITY__ENCRYPTIONKEY: "${VAULT_ENCRYPTION_KEY:-${ENCRYPTION_KEY}}"
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}000:443"
