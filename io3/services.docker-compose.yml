@@ -672,6 +672,7 @@ services:
           *objectStoreEnv,
           *workflowEnv,
           *notificationEnv,
+          *integrationFlowEnv,
           *webClientPublic,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-inbox"
