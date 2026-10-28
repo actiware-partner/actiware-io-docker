@@ -28,6 +28,7 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 - Notification Service mit E-Mail-Versand über Microsoft Graph, inklusive Absenderprofil und Empfänger für Sperrberichte
 - Lookup Service und Integration Flow Service als neue Services
 - Integration-Client als eigener Client (Port `…203`), inklusive SSO-Freigabe im Identity Service
+- Eigener Schlüssel `VAULT_ENCRYPTION_KEY` für die gespeicherten Zugangsdaten des Vault Service, getrennt vom `ENCRYPTION_KEY` der übrigen Services; `setup.sh` erzeugt ihn für neue Installationen **[Sicherheit]**
 
 ## Improvements
 
@@ -45,6 +46,7 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 - Docs Service: Verknüpfungen zu Business-Objekten und Workflows werden nicht mehr als defekt gemeldet, weil die Endpunkte von Object Storage und Workflow Service gesetzt sind (#1)
 - Document Viewer Service: Der Project Service verwendet das gemeinsame Secret (`SHARED_SECRET`) statt des Client-Secrets
 - Identity Service erhält seine eigene Endpunkt-Konfiguration, die SSO-Freigaben umfassen nun auch Integration-Client und Anmelde-Callback
+- Vault Service: `SERVICE__SECURITY__SHAREDSECRET` erhält in `x-secureEnv` den `ENCRYPTION_KEY` statt des `SHARED_SECRET`. Mit dem `SHARED_SECRET` scheiterten Publish und Test-Publish mit `ERROR_SHARED_DECRYPTION_FAILED`, weil der Vault die Sicherheitsdaten des Project Service nicht entschlüsseln konnte
 - Log-Level-Einstellungen greifen wieder: SQL-Befehle erscheinen nicht mehr auf Stufe `Information`
 - Importverzeichnis wird für Core-Modul und Output Manager mit geteilter Mount-Propagation eingebunden, nachträglich eingehängte Laufwerke sind damit im Container sichtbar
 - Solr-Healthcheck nutzt die Zugangsdaten und den tatsächlich angelegten Core (`SOL_BASE_INDEXNAME`)
@@ -60,3 +62,4 @@ Dieses Preview ersetzt die Docker-Umgebung von ACTIWARE.IO 3 vollständig. Ein U
 - **Pfade:** Zertifikate, CA, Kerberos-Keytab und Importe werden standardmäßig unter `/aw/…` auf dem Host erwartet statt relativ zum Repository.
 - **Anmeldung:** Ab Identity Service 3.0.9 schlägt die Anmeldung mit `Invalid redirect_uri` fehl, wenn eine Client-Adresse fehlt. Zusätzliche Adressen in `ADDITIONAL_REDIRECT_URIS` eintragen, siehe „Anmelde-Adressen“.
 - **Logging:** Die Serilog-Variablen heißen `SERILOG__…` statt `SERVICE__SERILOG__…`. Eigene Overrides entsprechend umbenennen.
+- **Vault-Schlüssel:** Bestehende Installationen lassen `VAULT_ENCRYPTION_KEY` leer, der Vault verwendet dann weiter den `ENCRYPTION_KEY`. Seine gespeicherten Zugangsdaten sind mit diesem Schlüssel verschlüsselt; ein neuer Wert machte sie unlesbar.
