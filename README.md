@@ -272,6 +272,18 @@ VERSION_IO_SERVICE_IDENTITY=myregistry.example.com/io-identity-service:3.1.0
 
 Alle verfügbaren Image-Variablen sind in `io3/.env.example` vollständig dokumentiert und vorbefüllt.
 
+> **Prototyp-Branch `prototype/IO3-2856`:** Auf diesem Branch stehen Identity, Project, Integration Flow, Worker Queue, Workflow, Inbox, Object Storage, Docs Service und Designer auf den Prototyp-Images `ghcr.io/actiware-io/<image>:prototyp-IO3-2856`. Für den Pull ist eine Anmeldung an der GitHub Container Registry nötig (`docker login ghcr.io` mit einem Token mit `read:packages`). Die übrigen Services bleiben auf `3-latest`.
+
+**Service-Endpunkte:**
+
+Die Adressen der Services untereinander stehen als YAML-Anker (`x-<service>Env`) am Anfang von `io3/services.docker-compose.yml` und werden pro Service eingebunden. Sie zeigen auf `${INSTANCE_HTTP_TYPE}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}<Port>` (siehe Port-Schema) und tragen `SHARED_SECRET` als gemeinsames Secret; zusätzliche Werte in der `.env` sind dafür nicht nötig.
+
+| Service | Eingebundene Endpunkte (Auszug) | Wofür |
+|---|---|---|
+| io-integration-flow-service | `DATAFLOWSERVICE`, `OBJECTSTORAGESERVICE`, `OCRSERVICE`, `WORKFLOWSERVICE` | Knoten „Data Flow ausführen“, Object-Storage-Knoten, Knoten „OCR“, Workflow starten |
+| io-worker-queue-service | `INTEGRATIONFLOWSERVICE`, `WORKFLOWSERVICE` | Outputs „Integration Flow starten“ und „Workflow starten“ |
+| io-inbox-service | `INTEGRATIONFLOWSERVICE` | Archivierung über einen Prozess und Pipeline-Schritt „Integration Flow“ |
+
 ### 2.3 io3 starten
 
 ```bash
