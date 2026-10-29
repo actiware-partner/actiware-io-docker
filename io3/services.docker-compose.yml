@@ -329,6 +329,7 @@ services:
           *notificationEnv,
           *integrationFlowEnv,
           *workflowEnv,
+          *inboxEnv,
           *webClientPublic,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-worker-queue"
@@ -866,6 +867,8 @@ services:
           *objectStoreEnv,
           *ocrEnv,
           *workflowEnv,
+          *inboxEnv,
+          *docsEnv,
           *webClientPublic,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-integration-flow"
