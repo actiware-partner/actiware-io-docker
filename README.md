@@ -280,8 +280,8 @@ Die Adressen der Services untereinander stehen als YAML-Anker (`x-<service>Env`)
 
 | Service | Eingebundene Endpunkte (Auszug) | Wofür |
 |---|---|---|
-| io-integration-flow-service | `DATAFLOWSERVICE`, `OBJECTSTORAGESERVICE`, `OCRSERVICE`, `WORKFLOWSERVICE` | Knoten „Data Flow ausführen“, Object-Storage-Knoten, Knoten „OCR“, Workflow starten |
-| io-worker-queue-service | `INTEGRATIONFLOWSERVICE`, `WORKFLOWSERVICE` | Outputs „Integration Flow starten“ und „Workflow starten“ |
+| io-integration-flow-service | `DATAFLOWSERVICE`, `OBJECTSTORAGESERVICE`, `OCRSERVICE`, `WORKFLOWSERVICE`, `INBOXSERVICE`, `DOCSSERVICE` | Knoten „Data Flow ausführen“, Object-Storage-Knoten, Knoten „OCR“, Workflow starten, Knoten „Inbox lesen“, Knoten „Docs suchen/lesen“ |
+| io-worker-queue-service | `INTEGRATIONFLOWSERVICE`, `WORKFLOWSERVICE`, `INBOXSERVICE` | Outputs „Integration Flow starten“, „Workflow starten“ und „In Inbox ablegen“ |
 | io-inbox-service | `INTEGRATIONFLOWSERVICE` | Archivierung über einen Prozess und Pipeline-Schritt „Integration Flow“ |
 
 ### 2.3 io3 starten
