@@ -157,7 +157,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_IDENTITY:-ghcr.io/actiware-io/io-identity-service:prototyp-IO3-2856}"
+    image: "${VERSION_IO_SERVICE_IDENTITY:-actiwareio/io-identity-service:3-latest}"
     # init is required: without it the healthcheck occasionally times out, leaving behind masses of defunct bash processes
     init: true
     group_add:
@@ -191,7 +191,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_PROJECT:-ghcr.io/actiware-io/io-project-service:prototyp-IO3-2856}"
+    image: "${VERSION_IO_SERVICE_PROJECT:-actiwareio/io-project-service:3-latest}"
     environment:
       <<:
         [
@@ -308,7 +308,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_WORKER_QUEUE:-ghcr.io/actiware-io/io-worker-queue-service:prototyp-IO3-2856}"
+    image: "${VERSION_IO_SERVICE_WORKER_QUEUE:-actiwareio/io-worker-queue-service:3-latest}"
     environment:
       <<:
         [
@@ -382,7 +382,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_WORKFLOW:-ghcr.io/actiware-io/io-workflow-service:prototyp-IO3-2856}"
+    image: "${VERSION_IO_SERVICE_WORKFLOW:-actiwareio/io-workflow-service:3-latest}"
     environment:
       <<:
         [
@@ -442,7 +442,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_OBJECT_STORAGE:-ghcr.io/actiware-io/io-object-storage-service:prototyp-IO3-2856}"
+    image: "${VERSION_IO_SERVICE_OBJECT_STORAGE:-actiwareio/io-object-storage-service:3-latest}"
     environment:
       <<:
         [
@@ -656,7 +656,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_INBOX:-ghcr.io/actiware-io/io-inbox-service:prototyp-IO3-2856}"
+    image: "${VERSION_IO_SERVICE_INBOX:-actiwareio/io-inbox-service:3-latest}"
     environment:
       <<:
         [
@@ -789,7 +789,7 @@ services:
     extends:
       file: base.yml
       service: httpsContainer
-    image: "${VERSION_IO_SERVICE_DOCS:-ghcr.io/actiware-io/io-docs-service:prototyp-IO3-2856}"
+    image: "${VERSION_IO_SERVICE_DOCS:-actiwareio/io-docs-service:3-latest}"
     environment:
       <<:
         [
@@ -849,7 +849,7 @@ services:
     extends:
       file: base.yml
       service: httpsContainer
-    image: "${VERSION_IO_SERVICE_INTEGRATION_FLOW:-ghcr.io/actiware-io/io-integration-flow-service:prototyp-IO3-2856}"
+    image: "${VERSION_IO_SERVICE_INTEGRATION_FLOW:-actiwareio/io-integration-flow-service:3-latest}"
     environment:
       <<:
         [

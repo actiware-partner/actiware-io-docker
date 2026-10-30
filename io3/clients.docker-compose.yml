@@ -5,7 +5,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_CLIENT_DESIGNER:-ghcr.io/actiware-io/io-designer:prototyp-IO3-2856}"
+    image: "${VERSION_IO_CLIENT_DESIGNER:-actiwareio/io-designer:3-latest}"
     depends_on:
       - io-identity-service
       - io-project-service
