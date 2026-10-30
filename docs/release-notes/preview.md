@@ -27,6 +27,7 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 - Vektorspeicher Weaviate mit Reranker, standardmäßig mit dem mehrsprachigen Modell `baai-bge-reranker-v2-m3`
 - Notification Service mit E-Mail-Versand über Microsoft Graph, inklusive Absenderprofil und Empfänger für Sperrberichte
 - Lookup Service und Integration Flow Service als neue Services
+- Integration Flow Service erhält die Endpunkte von Data Flow, Object Storage, OCR, Workflow, Inbox und Docs Service, Worker Queue Service die Endpunkte von Integration Flow, Workflow und Inbox Service (integrierte Prozessoren)
 - Integration-Client als eigener Client (Port `…203`), inklusive SSO-Freigabe im Identity Service
 - Eigener Schlüssel `VAULT_ENCRYPTION_KEY` für die gespeicherten Zugangsdaten des Vault Service, getrennt vom `ENCRYPTION_KEY` der übrigen Services; `setup.sh` erzeugt ihn für neue Installationen **[Sicherheit]**
 

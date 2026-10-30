@@ -272,6 +272,16 @@ VERSION_IO_SERVICE_IDENTITY=myregistry.example.com/io-identity-service:3.1.0
 
 Alle verfügbaren Image-Variablen sind in `io3/.env.example` vollständig dokumentiert und vorbefüllt.
 
+**Service-Endpunkte:**
+
+Die Adressen der Services untereinander stehen als YAML-Anker (`x-<service>Env`) am Anfang von `io3/services.docker-compose.yml` und werden pro Service eingebunden. Sie zeigen auf `${INSTANCE_HTTP_TYPE}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}<Port>` (siehe Port-Schema) und tragen `SHARED_SECRET` als gemeinsames Secret; zusätzliche Werte in der `.env` sind dafür nicht nötig.
+
+| Service | Eingebundene Endpunkte (Auszug) | Wofür |
+|---|---|---|
+| io-integration-flow-service | `DATAFLOWSERVICE`, `OBJECTSTORAGESERVICE`, `OCRSERVICE`, `WORKFLOWSERVICE`, `INBOXSERVICE`, `DOCSSERVICE` | Knoten „Data Flow ausführen“, Object-Storage-Knoten, Knoten „OCR“, Workflow starten, Knoten „Inbox lesen“, Knoten „Docs suchen/lesen“ |
+| io-worker-queue-service | `INTEGRATIONFLOWSERVICE`, `WORKFLOWSERVICE`, `INBOXSERVICE` | Outputs „Integration Flow starten“, „Workflow starten“ und „In Inbox ablegen“ |
+| io-inbox-service | `INTEGRATIONFLOWSERVICE` | Archivierung über einen Prozess und Pipeline-Schritt „Integration Flow“ |
+
 ### 2.3 io3 starten
 
 ```bash
