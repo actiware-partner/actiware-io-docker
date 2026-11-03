@@ -150,6 +150,12 @@ services:
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-vault"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-vault"
+      # MCP-Anmeldung: Callback des BFF, Pflicht (ohne ihn: CALLBACK_NOT_CONFIGURED). Designer > Maintenance > Services > Vault Service ersetzt die Werte.
+      SERVICE__USERCREDENTIALS__MCPCALLBACKURL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}012/api/v3/client/user/credentials/oauth/callback"
+      # Rückkehrseite des Designers für "Verbindung testen" (OpenID je Benutzer, MCP-Anmeldung); wird bei MCP-Servern mitregistriert.
+      SERVICE__USERCREDENTIALS__TESTLOGINREDIRECTURIS__0: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}201/oauth/test-callback"
+      # Nur mit USERCREDENTIALS__OAUTH__PUBLICBASEURL am BFF (aus dem Internet erreichbar); ohne registriert sich der Vault selbst beim Autorisierungsserver.
+      # SERVICE__USERCREDENTIALS__MCPCLIENTMETADATADOCUMENTURL: "https://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}012/api/v3/client/oauth/client-metadata.json"
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}000:443"
@@ -373,6 +379,7 @@ services:
           *sdkEnv,
           *docsEnv,
           *objectStoreEnv,
+          *workflowEnv,
           *notificationEnv,
           *webClientPublic,
         ]
@@ -549,6 +556,12 @@ services:
       SERVICE__ENDPOINTS__DOCUMENTVIEWER__SHAREDSECRET: "${CLIENT_SECRET}"
       SERVICE__ENDPOINTS__DOCUMENTVIEWER__MODE: "document_viewer"
       SERVICE__ENDPOINTS__DOCUMENTVIEWER__CALLBACKBASEURL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}012"
+      # Anmeldung mit eigenen Zugangsdaten (OpenID je Benutzer, MCP-Anmeldung): Der Callback des BFF leitet auf diese Seite des Web-Clients zurück.
+      # Ohne sie antwortet der Callback mit 503 LOGIN_RETURN_NOT_CONFIGURED. Designer > Maintenance > Services > BFF Client Service ersetzt den Wert.
+      USERCREDENTIALS__OAUTH__CLIENTRETURNURL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}202/credential-oauth-callback.html"
+      # Nur wenn der BFF aus dem Internet erreichbar ist: Client ID Metadata Document der MCP-Anmeldung. Dann am Vault MCPCLIENTMETADATADOCUMENTURL setzen.
+      # USERCREDENTIALS__OAUTH__PUBLICBASEURL: "https://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}012"
+      # USERCREDENTIALS__OAUTH__ADDITIONALREDIRECTURIS__0: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}201/oauth/test-callback"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}012:443"
     depends_on:

@@ -4,7 +4,7 @@ title: Preview (Unreleased)
 
 # Preview (Unreleased)
 
-_Stand: 23.10.2026_
+_Stand: 29.10.2026_
 
 Diese Seite sammelt alle Änderungen seit dem letzten Release (`release-3.0`) bis zum aktuellen Stand.
 Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernommen.
@@ -27,6 +27,7 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 - Vektorspeicher Weaviate mit Reranker, standardmäßig mit dem mehrsprachigen Modell `baai-bge-reranker-v2-m3`
 - Notification Service mit E-Mail-Versand über Microsoft Graph, inklusive Absenderprofil und Empfänger für Sperrberichte
 - Lookup Service und Integration Flow Service als neue Services
+- AI Transcription Service als neuer Service (Port `…021`), inklusive Image-Variable `VERSION_IO_SERVICE_AI_TRANSCRIPTION`
 - Integration Flow Service erhält die Endpunkte von Data Flow, Object Storage, OCR, Workflow, Inbox und Docs Service, Worker Queue Service die Endpunkte von Integration Flow, Workflow und Inbox Service (integrierte Prozessoren)
 - Integration-Client als eigener Client (Port `…203`), inklusive SSO-Freigabe im Identity Service
 - Eigener Schlüssel `VAULT_ENCRYPTION_KEY` für die gespeicherten Zugangsdaten des Vault Service, getrennt vom `ENCRYPTION_KEY` der übrigen Services; `setup.sh` erzeugt ihn für neue Installationen **[Sicherheit]**
@@ -44,10 +45,14 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 
 ## Bugfixes
 
+- Anmeldung mit eigenen Zugangsdaten (OpenID je Benutzer, MCP-Anmeldung): Der BFF Client erhält die Rückkehrseite des Web-Clients (`USERCREDENTIALS__OAUTH__CLIENTRETURNURL`), der Vault den MCP-Callback des BFF (`SERVICE__USERCREDENTIALS__MCPCALLBACKURL`) und die Testseite des Designers (`SERVICE__USERCREDENTIALS__TESTLOGINREDIRECTURIS__0`). Bisher endete die Anmeldung mit `LOGIN_RETURN_NOT_CONFIGURED` bzw. `CALLBACK_NOT_CONFIGURED`. Beschrieben unter „Anmelde-Adressen“ (IO3-3180)
+- Inbox Service: Die Archivierung über einen Prozess (`StartArchiveProcess`) bricht nicht mehr mit „Integration flow service URL is not configured“ ab, weil der Service jetzt den Endpunkt des Integration Flow Service erhält
 - Docs Service: Verknüpfungen zu Business-Objekten und Workflows werden nicht mehr als defekt gemeldet, weil die Endpunkte von Object Storage und Workflow Service gesetzt sind (#1)
 - Document Viewer Service: Der Project Service verwendet das gemeinsame Secret (`SHARED_SECRET`) statt des Client-Secrets
 - Identity Service erhält seine eigene Endpunkt-Konfiguration, die SSO-Freigaben umfassen nun auch Integration-Client und Anmelde-Callback
 - Vault Service: `SERVICE__SECURITY__SHAREDSECRET` erhält in `x-secureEnv` den `ENCRYPTION_KEY` statt des `SHARED_SECRET`. Mit dem `SHARED_SECRET` scheiterten Publish und Test-Publish mit `ERROR_SHARED_DECRYPTION_FAILED`, weil der Vault die Sicherheitsdaten des Project Service nicht entschlüsseln konnte
+- Vault-Schlüssel: `SERVICE__SECURITY__ENCRYPTIONKEY` wird jetzt einheitlich im gemeinsamen Sicherheitsblock von Services und Modulen gesetzt (`VAULT_ENCRYPTION_KEY`, leer: `ENCRYPTION_KEY`), statt nur am Vault Service **[Sicherheit]**
+- Services mit Qdrant-Anbindung erhalten den `QDRANT_API_KEY` über `SERVICE__ENDPOINTS__VECTORSTORE__QDRANT__APIKEY` und erreichen den abgesicherten Qdrant **[Sicherheit]**
 - Log-Level-Einstellungen greifen wieder: SQL-Befehle erscheinen nicht mehr auf Stufe `Information`
 - Importverzeichnis wird für Core-Modul und Output Manager mit geteilter Mount-Propagation eingebunden, nachträglich eingehängte Laufwerke sind damit im Container sichtbar
 - Solr-Healthcheck nutzt die Zugangsdaten und den tatsächlich angelegten Core (`SOL_BASE_INDEXNAME`)

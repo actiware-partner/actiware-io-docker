@@ -51,6 +51,36 @@ Danach den Identity Service neu starten:
 docker compose up -d io-identity-service
 ```
 
+## Anmeldung mit eigenen Zugangsdaten (Vault)
+
+Vault-Einträge, bei denen sich jeder Benutzer selbst anmeldet (OpenID je Benutzer, **MCP-Anmeldung**), brauchen eigene
+Rücksprung-Adressen. Diese Liste ist unabhängig von der des Identity Service. Die Vorlage setzt sie in
+`io3/services.docker-compose.yml`:
+
+| Dienst            | Variable                                         | Adresse (bei `INSTANCE_PORT_PREFIX=30`)                                         |
+| ----------------- | ------------------------------------------------ | ------------------------------------------------------------------------------- |
+| BFF Client        | `USERCREDENTIALS__OAUTH__CLIENTRETURNURL`        | `https://<EXTERNALADDRESS>:30202/credential-oauth-callback.html`                |
+| Vault             | `SERVICE__USERCREDENTIALS__MCPCALLBACKURL`       | `https://<EXTERNALADDRESS>:30012/api/v3/client/user/credentials/oauth/callback` |
+| Vault             | `SERVICE__USERCREDENTIALS__TESTLOGINREDIRECTURIS__0` | `https://<EXTERNALADDRESS>:30201/oauth/test-callback`                       |
+
+- Die **Rückkehrseite** des Web-Clients nimmt die Anmeldung entgegen. Fehlt sie, endet die Anmeldung mit
+  `LOGIN_RETURN_NOT_CONFIGURED`.
+- Der **MCP-Callback** ist die Adresse, an die der Anbieter (zum Beispiel Atlassian) nach der Anmeldung zurückleitet.
+  Fehlt er, scheitert jede MCP-Anmeldung mit `CALLBACK_NOT_CONFIGURED`.
+- Die **Testseite** des Designers braucht „Verbindung testen“. Der Vault meldet sie bei MCP-Servern zusammen mit dem
+  Callback an. Tragen Sie hier nur Adressen ein, unter denen der Designer tatsächlich läuft.
+
+Öffnen Benutzer die Programme unter einem anderen Namen oder Port, passen Sie die Werte an. Das geht ohne Neustart auch
+im Designer unter **Maintenance → Services → BFF Client Service** (`user_credentials.client_return_url`) und
+**Vault Service** (`user_credentials.mcp_callback_url`, `user_credentials.test_login_redirect_uris`). Dort eingetragene
+Werte ersetzen die der Vorlage.
+
+Ist der BFF aus dem Internet erreichbar, kann der Vault sich bei Anbietern über ein öffentliches Client-Dokument
+ausweisen, statt sich jedes Mal neu zu registrieren. Dafür die auskommentierten Zeilen
+`USERCREDENTIALS__OAUTH__PUBLICBASEURL` und `USERCREDENTIALS__OAUTH__ADDITIONALREDIRECTURIS__0` (BFF) sowie
+`SERVICE__USERCREDENTIALS__MCPCLIENTMETADATADOCUMENTURL` (Vault) aktivieren. Ohne diese Zeilen funktioniert die
+Anmeldung ebenfalls.
+
 ## Fehlende Adresse finden
 
 Der Identity Service schreibt jede abgelehnte Adresse ins Protokoll:
