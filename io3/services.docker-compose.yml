@@ -557,8 +557,6 @@ services:
           *notificationEnv,
           *webClientPublic,
         ]
-      # HTTP/2 für den Push der Dienst-Einstellungen (gRPC); Browser und SignalR verhandeln über TLS weiter selbst.
-      KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http1AndHttp2"
       SERVICE__ENDPOINTS__DOCUMENTVIEWER__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}019"
       SERVICE__ENDPOINTS__DOCUMENTVIEWER__SHAREDSECRET: "${CLIENT_SECRET}"
       SERVICE__ENDPOINTS__DOCUMENTVIEWER__MODE: "document_viewer"
