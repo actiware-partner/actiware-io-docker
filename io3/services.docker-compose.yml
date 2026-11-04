@@ -46,6 +46,11 @@ x-projectEnv: &projectEnv
   SERVICE__ENDPOINTS__PROJECTSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}002"
   SERVICE__ENDPOINTS__PROJECTSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
 
+x-bffClientEnv: &bffClientEnv
+  # Push der Dienst-Einstellungen an den BFF (gRPC, braucht HTTP/2 am BFF); der BFF prüft das Secret gegen SERVICE__ENDPOINTS__IDENTITYSERVICE__SHAREDSECRET.
+  SERVICE__ENDPOINTS__BFFCLIENTSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}012"
+  SERVICE__ENDPOINTS__BFFCLIENTSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
+
 x-webClientPublic: &webClientPublic
   SERVICE__WEBCLIENT__PUBLICADDRESS: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}202"
 
@@ -231,6 +236,7 @@ services:
           *lookupEnv,
           *integrationFlowEnv,
           *documentViewerEnv,
+          *bffClientEnv,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-project"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-project"
@@ -551,7 +557,8 @@ services:
           *notificationEnv,
           *webClientPublic,
         ]
-      KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http1"
+      # HTTP/2 für den Push der Dienst-Einstellungen (gRPC); Browser und SignalR verhandeln über TLS weiter selbst.
+      KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http1AndHttp2"
       SERVICE__ENDPOINTS__DOCUMENTVIEWER__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}019"
       SERVICE__ENDPOINTS__DOCUMENTVIEWER__SHAREDSECRET: "${CLIENT_SECRET}"
       SERVICE__ENDPOINTS__DOCUMENTVIEWER__MODE: "document_viewer"
