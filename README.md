@@ -291,7 +291,7 @@ docker compose up -d
 
 Der `docker-compose.yml` im `io3/`-Verzeichnis inkludiert automatisch alle drei Teil-Stacks:
 - `clients.docker-compose.yml` — Web-Clients und Designer
-- `services.docker-compose.yml` — alle Backend-Services
+- `services.docker-compose.yml` — alle Backend-Services; am Ende steht der optionale Skill Runner auskommentiert, siehe [Skill Runner einschalten](docs/administration/skill-runner.md)
 - `modules.docker-compose.yml` — Core- und Output-Manager-Module
 
 **Status prüfen:**
@@ -329,6 +329,7 @@ Bei `INSTANCE_PORT_PREFIX=30` (Standard Produktion):
 | `30018` | io-docs-service |
 | `30019` | io-document-viewer-service |
 | `30020` | io-lookup-service |
+| `30021` | io-ai-transcription-service |
 | `30050` | Weaviate HTTP/REST |
 | `30051` | Weaviate gRPC |
 | `30102` | io-module-core |
@@ -342,6 +343,8 @@ Bei `INSTANCE_PORT_PREFIX=30` (Standard Produktion):
 | `30900` | S3/MinIO API |
 | `30901` | S3/MinIO Console |
 | `30983` | Solr |
+
+> Der optionale Skill Runner wird nicht am Host veröffentlicht. Er ist nur für den AiChat über das interne Netz `skill_runner_net` erreichbar (gRPC `30024`, Health `30025` im Container).
 
 > Für eine zweite Instanz (z. B. Test) `INSTANCE_PORT_PREFIX=40` setzen — alle Ports verschieben sich entsprechend.
 

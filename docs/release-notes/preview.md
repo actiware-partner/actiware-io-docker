@@ -4,7 +4,7 @@ title: Preview (Unreleased)
 
 # Preview (Unreleased)
 
-_Stand: 04.11.2026_
+_Stand: 05.11.2026_
 
 Diese Seite sammelt alle Änderungen seit dem letzten Release (`release-3.0`) bis zum aktuellen Stand.
 Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernommen.
@@ -28,6 +28,7 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 - Notification Service mit E-Mail-Versand über Microsoft Graph, inklusive Absenderprofil und Empfänger für Sperrberichte
 - Lookup Service und Integration Flow Service als neue Services
 - AI Transcription Service als neuer Service (Port `…021`), inklusive Image-Variable `VERSION_IO_SERVICE_AI_TRANSCRIPTION`
+- Skill Runner als optionaler Ausführungs-Container für die Skripte von Agent-Skills (IO3-3075): vollständig, aber auskommentiert in `io3/services.docker-compose.yml` (Runner, Sidecar für die Netzsperre, internes Netz `skill_runner_net`, Volume), dazu die vorbereiteten Zeilen am `io-ai-chat-service`, die Variablen `SKILL_RUNNER_SHARED_SECRET`, `SKILL_RUNNER_MEM_LIMIT`, `SKILL_RUNNER_CPUS` und `VERSION_IO_SKILL_RUNNER` in `io3/.env.example` sowie die Anleitung „Skill Runner einschalten“. Der Runner wird nicht am Host veröffentlicht.
 - Integration Flow Service erhält die Endpunkte von Data Flow, Object Storage, OCR, Workflow, Inbox und Docs Service, Worker Queue Service die Endpunkte von Integration Flow, Workflow und Inbox Service (integrierte Prozessoren)
 - Integration-Client als eigener Client (Port `…203`), inklusive SSO-Freigabe im Identity Service
 - Eigener Schlüssel `VAULT_ENCRYPTION_KEY` für die gespeicherten Zugangsdaten des Vault Service, getrennt vom `ENCRYPTION_KEY` der übrigen Services; `setup.sh` erzeugt ihn für neue Installationen **[Sicherheit]**
