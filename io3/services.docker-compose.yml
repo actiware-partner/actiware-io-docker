@@ -386,6 +386,7 @@ services:
           *docsEnv,
           *objectStoreEnv,
           *workflowEnv,
+          *integrationFlowEnv,
           *notificationEnv,
           *webClientPublic,
         ]
