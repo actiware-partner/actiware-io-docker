@@ -393,11 +393,22 @@ services:
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-ai-chat"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-ai-chat"
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
+      # Skill Runner (optional, siehe io-skill-runner am Ende der Datei und docs/administration/skill-runner.md):
+      # Adresse und Geheimnis des Runners. Ohne Adresse führen Agenten keine Skripte aus.
+      # SKILLRUNNER__ENDPOINTS__0: "http://io-skill-runner:30024"
+      # SKILLRUNNER__SHAREDSECRET: "${SKILL_RUNNER_SHARED_SECRET}"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}007:443"
+    # Skill Runner: Der AiChat hängt zusätzlich am internen Netz des Runners. "default" muss bleiben, sonst erreicht der
+    # AiChat die übrigen Dienste nicht mehr.
+    # networks:
+    #   - default
+    #   - skill_runner_net
     depends_on:
       io-identity-service:
         condition: service_started
+      # io-skill-runner:
+      #   condition: service_healthy
 
   # Service: io-workflow-service
   io-workflow-service:
@@ -952,3 +963,90 @@ services:
     depends_on:
       io-identity-service:
         condition: service_started
+
+  # ---------------------------------------------------------------------------
+  # Skill Runner (optional): Ausführungs-Container für die Skripte von Agent-Skills und für Code, den Agenten selbst
+  # schreiben. Einschalten: diesen Block, das Netz und das Volume am Ende der Datei sowie die markierten Zeilen beim
+  # io-ai-chat-service einkommentieren und SKILL_RUNNER_SHARED_SECRET in .env setzen.
+  # Anleitung: docs/administration/skill-runner.md. Der Runner bekommt bewusst keine ports:, er ist nur für den AiChat
+  # im internen Netz erreichbar (gRPC 30024, Health 30025).
+  # ---------------------------------------------------------------------------
+  # io-skill-runner:
+  #   # Variante mit LibreOffice (Word, Excel, PowerPoint umwandeln, PDF erzeugen): actiwareio/io3-skill-runner-office:3-latest
+  #   image: "${VERSION_IO_SKILL_RUNNER:-actiwareio/io3-skill-runner:3-latest}"
+  #   restart: unless-stopped
+  #   user: "0:0"
+  #   read_only: true
+  #   cap_drop:
+  #     - ALL
+  #   cap_add:
+  #     - SETUID
+  #     - SETGID
+  #     - CHOWN
+  #     - FOWNER
+  #     - KILL
+  #   security_opt:
+  #     - no-new-privileges:true
+  #   ipc: none
+  #   oom_score_adj: -500
+  #   tmpfs:
+  #     - /tmp:rw,exec,nosuid,nodev,size=256m,mode=0700
+  #     - /var/tmp:rw,nosuid,nodev,size=64m,mode=1777
+  #   volumes:
+  #     - skill-runner-workspaces:/workspaces
+  #   environment:
+  #     TZ: "${TIMEZONE:-Europe/Berlin}"
+  #     SkillRunner__SharedSecret: "${SKILL_RUNNER_SHARED_SECRET:?SKILL_RUNNER_SHARED_SECRET muss gesetzt sein}"
+  #     # Läufe nur, solange die Netzsperre des Sidecars wirkt (fail-closed).
+  #     SkillRunner__RequireEgressGuard: "true"
+  #   mem_limit: "${SKILL_RUNNER_MEM_LIMIT:-4g}"
+  #   pids_limit: 1024
+  #   cpus: "${SKILL_RUNNER_CPUS:-2}"
+  #   networks:
+  #     - skill_runner_net
+  #   logging:
+  #     driver: "${LOG_SERVICE_DRIVER:-json-file}"
+  #     options:
+  #       max-size: "${LOG_SERVICE_SIZE:-50m}"
+  #       max-file: "${LOG_SERVICE_FILES:-3}"
+  #       compress: "true"
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-fsS", "http://127.0.0.1:30025/healthz"]
+  #     start_period: 15s
+  #     interval: 10s
+  #     timeout: 3s
+  #     retries: 3
+  #
+  # # Netzsperre für die Läufe: verwirft im Netz des Runners alle ausgehenden Verbindungen der Arbeitsbereichs-UIDs
+  # # 20000-29999. Nach einem Neustart des Runners mit "docker compose up -d" neu erzeugen, sonst nimmt er keine Läufe an.
+  # io-skill-runner-netguard:
+  #   image: "${VERSION_IO_SKILL_RUNNER:-actiwareio/io3-skill-runner:3-latest}"
+  #   network_mode: "service:io-skill-runner"
+  #   depends_on:
+  #     - io-skill-runner
+  #   restart: unless-stopped
+  #   user: "0:0"
+  #   read_only: true
+  #   cap_drop:
+  #     - ALL
+  #   cap_add:
+  #     - NET_ADMIN
+  #   entrypoint: ["sh", "-c"]
+  #   command:
+  #     - >
+  #       while true; do
+  #       iptables -C OUTPUT -m owner --uid-owner 20000-29999 -j REJECT 2>/dev/null ||
+  #       iptables -A OUTPUT -m owner --uid-owner 20000-29999 -j REJECT;
+  #       ip6tables -C OUTPUT -m owner --uid-owner 20000-29999 -j REJECT 2>/dev/null ||
+  #       ip6tables -A OUTPUT -m owner --uid-owner 20000-29999 -j REJECT 2>/dev/null;
+  #       sleep 10; done
+  #   mem_limit: 64m
+
+# Skill Runner (optional): internes Netz ohne Weg nach außen und Volume für die Arbeitsbereiche.
+# networks:
+#   skill_runner_net:
+#     internal: true
+#
+# volumes:
+#   skill-runner-workspaces:
+#     driver: local

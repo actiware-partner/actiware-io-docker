@@ -50,6 +50,11 @@ Die vollständige Schritt-für-Schritt-Anleitung mit allen Variablen, Zertifikat
   - Einbindung in io-backend und io3
   - System als vertrauenswürdig einrichten
 
+- [Skill Runner einschalten](./skill-runner.md)
+  - Ausführungs-Container für die Skripte von Agent-Skills (optional)
+  - Auskommentierten Block in `services.docker-compose.yml` einschalten
+  - AiChat anbinden, Netzsperre, Prüfen
+
 - [Anmelde-Adressen](./anmelde-adressen.md)
   - Welche Rücksprungadressen die Vorlage für die Anmeldung einträgt
   - Edge-Sidebar und weitere Adressen ergänzen
