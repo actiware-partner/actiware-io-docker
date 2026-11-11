@@ -4,7 +4,7 @@ title: Preview (Unreleased)
 
 # Preview (Unreleased)
 
-_Stand: 05.11.2026_
+_Stand: 11.11.2026_
 
 Diese Seite sammelt alle Änderungen seit dem letzten Release (`release-3.0`) bis zum aktuellen Stand.
 Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernommen.
@@ -49,6 +49,7 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 - Dienst-Einstellungen (Designer > Maintenance > Services): Alle Services mit Einstellungsseite erhalten den Endpunkt des Project Service (`x-projectEnv`, `SERVICE__ENDPOINTS__PROJECTSERVICE__*`). Bisher holte kein Service seine Einstellungen ab und meldete keinen Ausgangsstand, Felder ohne Standardwert blieben im Designer leer. Der Project Service erhält zusätzlich den Endpunkt des BFF Client (`x-bffClientEnv`), und die Vorlage legt den BFF nicht mehr auf `Http1` fest: Der BFF bietet HTTP/2 selbst an (`Kestrel:EndpointDefaults:Protocols`, IO3-3233), gespeicherte Einstellungen kommen dort sofort per Push an statt erst mit dem nächsten Abruf
 - Anmeldung mit eigenen Zugangsdaten (OpenID je Benutzer, MCP-Anmeldung): Der BFF Client erhält die Rückkehrseite des Web-Clients (`USERCREDENTIALS__OAUTH__CLIENTRETURNURL`), der Vault den MCP-Callback des BFF (`SERVICE__USERCREDENTIALS__MCPCALLBACKURL`) und die Testseite des Designers (`SERVICE__USERCREDENTIALS__TESTLOGINREDIRECTURIS__0`). Bisher endete die Anmeldung mit `LOGIN_RETURN_NOT_CONFIGURED` bzw. `CALLBACK_NOT_CONFIGURED`. Beschrieben unter „Anmelde-Adressen“ (IO3-3180)
 - Inbox Service: Die Archivierung über einen Prozess (`StartArchiveProcess`) bricht nicht mehr mit „Integration flow service URL is not configured“ ab, weil der Service jetzt den Endpunkt des Integration Flow Service erhält
+- Workflow Service: Die Regel-Aktion „Prozess starten“ bricht nicht mehr mit „Service:Endpoints:IntegrationFlowService:Url is not configured“ ab, weil der Service jetzt den Endpunkt des Integration Flow Service erhält (`x-integrationFlowEnv`, IO3-3583)
 - Docs Service: Verknüpfungen zu Business-Objekten und Workflows werden nicht mehr als defekt gemeldet, weil die Endpunkte von Object Storage und Workflow Service gesetzt sind (#1)
 - Document Viewer Service: Der Project Service verwendet das gemeinsame Secret (`SHARED_SECRET`) statt des Client-Secrets
 - Identity Service erhält seine eigene Endpunkt-Konfiguration, die SSO-Freigaben umfassen nun auch Integration-Client und Anmelde-Callback
