@@ -78,7 +78,7 @@ Dienste rufen Module nur mit dem Modul-Secret auf (`authorization: Bearer <MODUL
 > [!WARNING]
 > `ENCRYPTION_KEY`, `VAULT_ENCRYPTION_KEY` und `IDENTITY_ENCRYPTION_KEY` nach der Inbetriebnahme nicht mehr ändern. Bestehende Installationen lassen `VAULT_ENCRYPTION_KEY` leer: Der Vault hat seine Zugangsdaten bisher mit dem `ENCRYPTION_KEY` verschlüsselt, mit einem neuen Wert wären sie nicht mehr lesbar.
 >
-> `IDENTITY_ENCRYPTION_KEY` darf eine bestehende Installation einmal setzen, und zwar vor dem ersten Start eines Identity Service mit IO3-3489: Dieser Start stellt die gespeicherten Secrets auf den Schlüssel um. Danach gilt dasselbe wie für die anderen Schlüssel: Mit einem neuen Wert startet der Identity Service nicht mehr.
+> `IDENTITY_ENCRYPTION_KEY` darf eine bestehende Installation einmal setzen, und zwar vor dem ersten Start eines Identity Service mit IO3-3489: Dieser Start stellt die gespeicherten Secrets auf den Schlüssel um. Danach gilt dasselbe wie für die anderen Schlüssel: Mit einem neuen Wert startet der Identity Service zwar, kann aber keine Tokens mehr ausstellen, und Anmeldungen schlagen fehl.
 
 ### Standard-Admin-Zugang
 
