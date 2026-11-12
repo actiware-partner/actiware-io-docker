@@ -275,6 +275,7 @@ services:
           *workerQueueEnv,
           *objectStoreEnv,
           *inboxEnv,
+          *integrationFlowEnv,
           *notificationEnv,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-ocr"
@@ -433,6 +434,7 @@ services:
           *ocrEnv,
           *sdkEnv,
           *objectStoreEnv,
+          *docsEnv,
           *notificationEnv,
           *integrationFlowEnv,
           *webClientPublic,
@@ -530,6 +532,7 @@ services:
           *s3Env,
           *sdkEnv,
           *objectStoreEnv,
+          *integrationFlowEnv,
           *notificationEnv,
           *webClientPublic,
         ]
