@@ -35,8 +35,9 @@ Transaktion, bevor er die Datei annimmt.
 - Die Inbox-Grenze gilt für jeden Weg in die Inbox: Upload, Quelle, Verschieben und Kopieren, Ergebnisse der
   Vorverarbeitung. Die Anhang-Grenze gilt nur für Uploads über den Client: für Anhänge und für Dateien, die beim Anlegen eines
   Objekts mitkommen. Legen Dienste selbst Dokumente in einem Objekt ab (Inbox, Integration Flows, Worker Queues), prüft
-  sie diese Grenze nicht. Dort gelten die Grenzen der jeweiligen Dienste, bei der Inbox die Inbox-Grenze. Es muss deshalb
-  keine der beiden Grenzen höher stehen als die andere.
+  sie diese Grenze nicht. Bei der Inbox gilt die Inbox-Grenze. Integration Flows und Worker Queues haben keine eigene
+  Einstellung, für sie gilt nur `SERVICE__UPLOAD__MAXFILESIZEBYTES` des Object Storage. Es muss deshalb keine der beiden
+  Grenzen höher stehen als die andere.
 - Sollen Dateien über 2048 MB erlaubt sein, aber nicht bis 50 GiB, stellen Sie im Designer 0 ein und senken die
   technische Obergrenze auf den gewünschten Wert.
 
