@@ -369,6 +369,7 @@ if [ "$WITH_IO3" -eq 1 ]; then
   ask_generated MODULE_SHARED_SECRET "Modul-Secret (64 Zeichen HEX)"       hex64   "io3" "Aufrufe der Dienste an die Module, gleich in allen Diensten und Modulen, ungleich SHARED_SECRET" check_module_secret
   ask_generated ENCRYPTION_KEY  "Verschlüsselungsschlüssel (32 Zeichen HEX)" hex32 "io3" "Datenverschlüsselung at rest, nach Inbetriebnahme nicht mehr ändern"
   ask_generated VAULT_ENCRYPTION_KEY "Schlüssel des Vault (32 Zeichen HEX)" hex32 "io3" "gespeicherte Zugangsdaten des Vault Service, nach Inbetriebnahme nicht mehr ändern"
+  ask_generated IDENTITY_ENCRYPTION_KEY "Schlüssel der Identity (64 Zeichen HEX)" hex64 "io3" "gespeicherte Secrets und Signaturschlüssel des Identity Service, nach Inbetriebnahme nicht mehr ändern"
 
   # --- E-Mail ---------------------------------------------------------------
   section "E-Mail-Versand (Microsoft Graph)"
@@ -442,7 +443,7 @@ fi
 if [ "$WITH_IO3" -eq 1 ]; then
   build_env "$IO3_DIR" \
     EXTERNALADDRESS INSTANCE_PORT_PREFIX TIMEZONE \
-    DEFAULT_USER DEFAULT_PASS CLIENT_SECRET SHARED_SECRET MODULE_SHARED_SECRET ENCRYPTION_KEY VAULT_ENCRYPTION_KEY \
+    DEFAULT_USER DEFAULT_PASS CLIENT_SECRET SHARED_SECRET MODULE_SHARED_SECRET ENCRYPTION_KEY VAULT_ENCRYPTION_KEY IDENTITY_ENCRYPTION_KEY \
     AI_PROVIDER AI_MODEL AI_API_KEY \
     SOLR_TOKEN SOLR_USER SOLR_PASS SOL_BASE_INDEXNAME \
     S3_BUCKET_NAME_PREFIX S3_ACCESS_KEY S3_SECRET_KEY \
@@ -489,7 +490,7 @@ write_proof() {
 > - Das Dokument dient **ausschließlich als Installationsnachweis** und ist keine Ablage für Kennwörter.
 > - Nach dem Sichern **diese Datei löschen** (\`rm INSTALLATIONSNACHWEIS.md\`).
 > - Nicht per E-Mail versenden und nicht in Git einchecken.
-> - Den \`ENCRYPTION_KEY\` und den \`VAULT_ENCRYPTION_KEY\` nach der Inbetriebnahme nicht mehr ändern: bereits verschlüsselte Daten wären sonst nicht mehr lesbar.
+> - Den \`ENCRYPTION_KEY\`, den \`VAULT_ENCRYPTION_KEY\` und den \`IDENTITY_ENCRYPTION_KEY\` nach der Inbetriebnahme nicht mehr ändern: bereits verschlüsselte Daten wären sonst nicht mehr lesbar.
 
 ## Installation
 
