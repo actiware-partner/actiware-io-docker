@@ -962,7 +962,6 @@ services:
       file: base.yml
       service: httpsContainer
     image: "${VERSION_IO_SERVICE_AI_TRANSCRIPTION:-actiwareio/io-ai-transcription-service:3-latest}"
-    pull_policy: "daily"
     environment:
       <<:
         [
