@@ -360,5 +360,6 @@ Bei `INSTANCE_PORT_PREFIX=30` (Standard Produktion):
 - **Startreihenfolge:** Immer zuerst `io-backend`, dann `io3`.
 - **Passwörter:** Alle Secrets (`SHARED_SECRET`, `MODULE_SHARED_SECRET`, `ENCRYPTION_KEY`, `CLIENT_SECRET`) müssen kryptographisch stark sein (min. 32 Zeichen, zufällig). `MODULE_SHARED_SECRET` darf nicht gleich `SHARED_SECRET` sein; eine Änderung verlangt einen Neustart von Diensten und Modulen. Der `DEFAULT_PASS` ist **sofort nach dem ersten Login zu ändern**.
 - **Zertifikate:** Alle Services erwarten TLS. Selbstsignierte Zertifikate sind möglich, sofern die CA (`ca.crt`) in alle Container eingebunden ist.
+- **Große Dateien:** Uploads gehen direkt an den BFF (Port `…012`), die Vorlage hat keinen Reverse Proxy. Grenzen im Designer, technische Obergrenze (Standard 50 GiB) und Einstellungen für einen eigenen Proxy: [Große Dateien und Upload-Grenzen](docs/administration/upload-grenzen.md).
 - **Mehrere Instanzen:** Unterschiedliche `INSTANCE_PORT_PREFIX`-Werte und `DATABASE_PREFIX`-/`S3_BUCKET_NAME_PREFIX`-Werte verwenden, um Kollisionen zu vermeiden.
 - **Image-Versionen:** Jeder Service-Image-Pfad ist vollständig über eine ENV-Variable steuerbar — Registry, Image-Name und Tag. Defaults sind in den jeweiligen `.env.example`-Dateien vordefiniert und können direkt überschrieben werden.
