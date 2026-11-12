@@ -55,7 +55,7 @@ Datei: `io3/.env`
 | `MODULE_SHARED_SECRET` | ✅ | Modul-Secret: Die Dienste senden es bei jedem Modulaufruf, die Module prüfen es — 64 Zeichen HEX, ungleich `SHARED_SECRET`. Siehe [Modul-Secret](#modul-secret) |
 | `ENCRYPTION_KEY` | ✅ | Schlüssel für Datenverschlüsselung at rest — 32 Zeichen HEX. Mit ihm verschlüsseln die Services auch die Sicherheitsdaten, die sie dem Vault senden |
 | `VAULT_ENCRYPTION_KEY` | ➖ | Eigener Schlüssel des Vault für seine gespeicherten Zugangsdaten — 32 Zeichen HEX. Leer: `ENCRYPTION_KEY` |
-| `IDENTITY_ENCRYPTION_KEY` | ➖ | Eigener Schlüssel des Identity Service für seine gespeicherten Secrets und Signaturschlüssel — 64 Zeichen HEX, mindestens 32 Zeichen. Leer: `ENCRYPTION_KEY`. Ohne einen der beiden startet der Identity Service nicht |
+| `IDENTITY_ENCRYPTION_KEY` | ✅ | Eigener Schlüssel des Identity Service für seine gespeicherten Secrets und Signaturschlüssel — 64 Zeichen HEX, mindestens 32 Zeichen. Kein Rückfall auf `ENCRYPTION_KEY`: Ohne ihn startet der Identity Service nicht |
 | `CLIENT_SECRET` | ✅ | OAuth2 Client-Secret für inter-Service-Authentifizierung |
 | `CLIENT_ID` | ➖ | OAuth2 Client-ID — Default: `IoClient` |
 
@@ -78,7 +78,7 @@ Dienste rufen Module nur mit dem Modul-Secret auf (`authorization: Bearer <MODUL
 > [!WARNING]
 > `ENCRYPTION_KEY`, `VAULT_ENCRYPTION_KEY` und `IDENTITY_ENCRYPTION_KEY` nach der Inbetriebnahme nicht mehr ändern. Bestehende Installationen lassen `VAULT_ENCRYPTION_KEY` leer: Der Vault hat seine Zugangsdaten bisher mit dem `ENCRYPTION_KEY` verschlüsselt, mit einem neuen Wert wären sie nicht mehr lesbar.
 >
-> `IDENTITY_ENCRYPTION_KEY` darf eine bestehende Installation einmal setzen, und zwar vor dem ersten Start eines Identity Service mit IO3-3489: Dieser Start stellt die gespeicherten Secrets auf den Schlüssel um. Danach gilt dasselbe wie für die anderen Schlüssel: Mit einem neuen Wert startet der Identity Service zwar, kann aber keine Tokens mehr ausstellen, und Anmeldungen schlagen fehl.
+> `IDENTITY_ENCRYPTION_KEY` setzt eine bestehende Installation einmal, und zwar vor dem ersten Start eines Identity Service mit IO3-3489: Dieser Start stellt die gespeicherten Secrets auf den Schlüssel um. Lief ein Identity Service mit IO3-3489 schon ohne eigenen Schlüssel, hat er den `ENCRYPTION_KEY` verwendet; dann diesen Wert eintragen. Danach gilt dasselbe wie für die anderen Schlüssel: Mit einem neuen Wert startet der Identity Service zwar, kann aber keine Tokens mehr ausstellen, und Anmeldungen schlagen fehl.
 
 ### Standard-Admin-Zugang
 

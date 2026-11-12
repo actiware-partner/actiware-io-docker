@@ -226,6 +226,16 @@ check_module_secret() {
   return 0
 }
 
+# Der Identity Service startet ohne gültigen Installationsschlüssel nicht und
+# fällt nicht auf ENCRYPTION_KEY zurück (IO3-3489): mindestens 32 Zeichen.
+check_identity_key() {
+  if [ "${#1}" -lt 32 ]; then
+    warn "IDENTITY_ENCRYPTION_KEY braucht mindestens 32 Zeichen, sonst startet der Identity Service nicht."
+    return 1
+  fi
+  return 0
+}
+
 # Zugangsdaten, die identisch zum io-backend sein müssen, wenn nur io3
 # eingerichtet wird: es gibt keinen sinnvollen Vorschlag, der Wert muss
 # aus der .env des Backends kommen.
@@ -369,7 +379,7 @@ if [ "$WITH_IO3" -eq 1 ]; then
   ask_generated MODULE_SHARED_SECRET "Modul-Secret (64 Zeichen HEX)"       hex64   "io3" "Aufrufe der Dienste an die Module, gleich in allen Diensten und Modulen, ungleich SHARED_SECRET" check_module_secret
   ask_generated ENCRYPTION_KEY  "Verschlüsselungsschlüssel (32 Zeichen HEX)" hex32 "io3" "Datenverschlüsselung at rest, nach Inbetriebnahme nicht mehr ändern"
   ask_generated VAULT_ENCRYPTION_KEY "Schlüssel des Vault (32 Zeichen HEX)" hex32 "io3" "gespeicherte Zugangsdaten des Vault Service, nach Inbetriebnahme nicht mehr ändern"
-  ask_generated IDENTITY_ENCRYPTION_KEY "Schlüssel der Identity (64 Zeichen HEX)" hex64 "io3" "gespeicherte Secrets und Signaturschlüssel des Identity Service, nach Inbetriebnahme nicht mehr ändern"
+  ask_generated IDENTITY_ENCRYPTION_KEY "Schlüssel der Identity (64 Zeichen HEX)" hex64 "io3" "gespeicherte Secrets und Signaturschlüssel des Identity Service, nach Inbetriebnahme nicht mehr ändern" check_identity_key
 
   # --- E-Mail ---------------------------------------------------------------
   section "E-Mail-Versand (Microsoft Graph)"
