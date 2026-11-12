@@ -81,11 +81,12 @@ rand_guid() {
   fi
 }
 
-generate() { # $1 = Art (alnum32 | hex32 | guid | alnum24)
+generate() { # $1 = Art (alnum32 | hex32 | hex64 | guid | alnum24)
   case "$1" in
     alnum32) rand_alnum 32 ;;
     alnum24) rand_alnum 24 ;;
     hex32)   rand_hex 32 ;;
+    hex64)   rand_hex 64 ;;
     guid)    rand_guid ;;
     *) die "Interner Fehler: unbekannte Generator-Art '$1'" ;;
   esac
@@ -187,22 +188,42 @@ ask_hidden_value() { # Label, Ergebnis in REPLY; Eingabe wird wiederholt
 }
 
 # Generierter Schlüssel mit Bestätigung durch den Anwender.
-# KEY, Anzeigename, Generator-Art, Dateien (backend|io3|backend+io3), Verwendung
+# KEY, Anzeigename, Generator-Art, Dateien (backend|io3|backend+io3), Verwendung,
+# [Prüffunktion: bekommt den Wert, meldet den Fehler selbst, Rückgabe != 0 = erneut fragen]
 ask_generated() {
-  local key=$1 label=$2 kind=$3 files=$4 usage=$5 candidate
+  local key=$1 label=$2 kind=$3 files=$4 usage=$5 check=${6-} candidate
   candidate="$(generate "$kind")"
   while :; do
     printf '\n%s%s%s (%s)\n' "$C_B" "$label" "$C_0" "$key"
     printf '  Vorschlag: %s%s%s\n' "$C_G" "$candidate" "$C_0"
     read_line "  [J] übernehmen  [N] neu erzeugen  [E] eigenen Wert eingeben: "
     case "${REPLY:-j}" in
-      j|J|y|Y|ja|Ja) setv "$key" "$candidate"; break ;;
-      n|N) candidate="$(generate "$kind")" ;;
-      e|E) ask_hidden_value "  Eigener Wert für $key"; setv "$key" "$REPLY"; break ;;
-      *) warn "Bitte J, N oder E eingeben." ;;
+      j|J|y|Y|ja|Ja) setv "$key" "$candidate" ;;
+      n|N) candidate="$(generate "$kind")"; continue ;;
+      e|E) ask_hidden_value "  Eigener Wert für $key"; setv "$key" "$REPLY" ;;
+      *) warn "Bitte J, N oder E eingeben."; continue ;;
     esac
+    if [ -n "$check" ] && ! "$check" "$(getv "$key")"; then
+      candidate="$(generate "$kind")"
+      continue
+    fi
+    break
   done
   register_secret "$key" "$files" "$usage"
+}
+
+# Das Modul-Secret geht als gRPC-Header an die Module: nur ASCII (HEX oder
+# base64), und es darf nicht das Plattform-Secret sein (IO3-3486).
+check_module_secret() {
+  if [ "$1" = "$(getv SHARED_SECRET)" ]; then
+    warn "MODULE_SHARED_SECRET darf nicht gleich SHARED_SECRET sein."
+    return 1
+  fi
+  if printf '%s' "$1" | LC_ALL=C grep -q '[^A-Za-z0-9+/=_-]'; then
+    warn "MODULE_SHARED_SECRET muss HEX oder base64 sein (A-Z a-z 0-9 + / = - _)."
+    return 1
+  fi
+  return 0
 }
 
 # Zugangsdaten, die identisch zum io-backend sein müssen, wenn nur io3
@@ -345,6 +366,7 @@ if [ "$WITH_IO3" -eq 1 ]; then
   ask_generated DEFAULT_PASS    "Kennwort des initialen Admins"          alnum24 "io3" "Anmeldung als $(getv DEFAULT_USER), nach dem ersten Login ändern"
   ask_generated CLIENT_SECRET   "OAuth2 Client-Secret"                   alnum32 "io3" "Authentifizierung zwischen den Services"
   ask_generated SHARED_SECRET   "Shared Secret (32 Zeichen HEX)"         hex32   "io3" "interne Service-zu-Service-Kommunikation"
+  ask_generated MODULE_SHARED_SECRET "Modul-Secret (64 Zeichen HEX)"       hex64   "io3" "Aufrufe der Dienste an die Module, gleich in allen Diensten und Modulen, ungleich SHARED_SECRET" check_module_secret
   ask_generated ENCRYPTION_KEY  "Verschlüsselungsschlüssel (32 Zeichen HEX)" hex32 "io3" "Datenverschlüsselung at rest, nach Inbetriebnahme nicht mehr ändern"
   ask_generated VAULT_ENCRYPTION_KEY "Schlüssel des Vault (32 Zeichen HEX)" hex32 "io3" "gespeicherte Zugangsdaten des Vault Service, nach Inbetriebnahme nicht mehr ändern"
 
@@ -420,7 +442,7 @@ fi
 if [ "$WITH_IO3" -eq 1 ]; then
   build_env "$IO3_DIR" \
     EXTERNALADDRESS INSTANCE_PORT_PREFIX TIMEZONE \
-    DEFAULT_USER DEFAULT_PASS CLIENT_SECRET SHARED_SECRET ENCRYPTION_KEY VAULT_ENCRYPTION_KEY \
+    DEFAULT_USER DEFAULT_PASS CLIENT_SECRET SHARED_SECRET MODULE_SHARED_SECRET ENCRYPTION_KEY VAULT_ENCRYPTION_KEY \
     AI_PROVIDER AI_MODEL AI_API_KEY \
     SOLR_TOKEN SOLR_USER SOLR_PASS SOL_BASE_INDEXNAME \
     S3_BUCKET_NAME_PREFIX S3_ACCESS_KEY S3_SECRET_KEY \

@@ -131,6 +131,12 @@ x-integrationFlowEnv: &integrationFlowEnv
   SERVICE__ENDPOINTS__INTEGRATIONFLOWSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}003"
   SERVICE__ENDPOINTS__INTEGRATIONFLOWSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
 
+x-moduleGrpcEnv: &moduleGrpcEnv
+  # Modul-Secret (IO3-3486): Aufrufer senden es an die Module, die Module prüfen es.
+  # Muss in Diensten und Modulen gleich sein und darf nicht gleich SHARED_SECRET sein.
+  # Ohne Wert schlägt jeder Modulaufruf mit MODULE_SECRET_MISSING fehl.
+  SERVICE__MODULEGRPC__SHAREDSECRET: "${MODULE_SHARED_SECRET}"
+
 services:
   # Service: io-vault-service
   io-vault-service:
@@ -214,6 +220,7 @@ services:
         [
           *dbEnv,
           *logEnv,
+          *moduleGrpcEnv,
           *secureEnv,
           *s3Env,
           *redisEnv,
@@ -333,6 +340,7 @@ services:
         [
           *dbEnv,
           *logEnv,
+          *moduleGrpcEnv,
           *secureEnv,
           *redisEnv,
           *s3Env,
@@ -374,6 +382,7 @@ services:
         [
           *dbEnv,
           *logEnv,
+          *moduleGrpcEnv,
           *secureEnv,
           *s3Env,
           *redisEnv,
@@ -424,6 +433,7 @@ services:
         [
           *dbEnv,
           *logEnv,
+          *moduleGrpcEnv,
           *secureEnv,
           *s3Env,
           *identityEnv,
@@ -459,6 +469,7 @@ services:
         [
           *dbEnv,
           *logEnv,
+          *moduleGrpcEnv,
           *secureEnv,
           *s3Env,
           *identityEnv,
@@ -523,6 +534,7 @@ services:
         [
           *dbEnv,
           *logEnv,
+          *moduleGrpcEnv,
           *redisEnv,
           *secureEnv,
           *identityEnv,
@@ -630,6 +642,7 @@ services:
         [
           *dbEnv,
           *logEnv,
+          *moduleGrpcEnv,
           *secureEnv,
           *s3Env,
           *redisEnv,
@@ -713,6 +726,7 @@ services:
         [
           *dbEnv,
           *logEnv,
+          *moduleGrpcEnv,
           *secureEnv,
           *s3Env,
           *identityEnv,
@@ -882,6 +896,7 @@ services:
         [
           *dbEnv,
           *logEnv,
+          *moduleGrpcEnv,
           *secureEnv,
           *s3Env,
           *redisEnv,
@@ -911,6 +926,7 @@ services:
         [
           *dbEnv,
           *logEnv,
+          *moduleGrpcEnv,
           *secureEnv,
           *s3Env,
           *redisEnv,
