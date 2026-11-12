@@ -206,6 +206,17 @@ Die Upload-Grenzen brauchen neue Versionen mehrerer Dienste. Aktualisieren Sie i
 Solange der BFF Client Service noch die alte Version hat, bleiben seine festen Grenzen bestehen: rund 28,6 MiB für
 Anhänge und 100 MiB für die Inbox, auch wenn im Designer mehr eingestellt ist.
 
+Zwischen Schritt 1 und 2 gilt: Speichern Sie im Designer noch **nicht** den Wert 0 für die Inbox und noch keine
+Einstellungen im Reiter _Attachments_. Der Project Service nimmt sie schon an, die alte Version des Inbox Service
+lehnt den Wert 0 (erlaubt waren 1 bis 2048) beziehungsweise den neuen Abschnitt noch ab. Warten Sie mit diesen
+Einstellungen, bis Inbox und Object Storage aktualisiert sind.
+
+**Vor dem Update prüfen:** Die Anhang-Grenze (Standard 100 MB) gilt im Object Storage für **alle** Schreibwege, auch für
+die Ablage aus der Inbox, aus Integration Flows (WriteObject), der Worker Queue und dem Client Service. Bisher hatten
+diese Wege keine Grenze. Steht die Inbox-Grenze höher als 100 MB (zum Beispiel 2048 MB), heben Sie die Anhang-Grenze im
+Designer **gleichzeitig mit dem Update** mindestens auf denselben Wert (oder auf 0) an. Sonst scheitert die Ablage größerer
+Dokumente, und die Elemente fallen auf _Ready_ zurück.
+
 Weitere Einstellungen der beiden Dienste beschreiben
 [Inbox Service: Umgebungsvariablen](/handbuch/platform-services/inbox-service/env/docker) und
 [Object Storage Service: Umgebungsvariablen](/handbuch/platform-services/object-storage-service/env/docker).
