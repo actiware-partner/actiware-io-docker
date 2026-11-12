@@ -33,8 +33,10 @@ Transaktion, bevor er die Datei annimmt.
 - **0 heißt unbegrenzt.** Dann gilt die technische Obergrenze aus dem nächsten Abschnitt, ohne eigene Angabe 50 GiB je
   Datei.
 - Die Inbox-Grenze gilt für jeden Weg in die Inbox: Upload, Quelle, Verschieben und Kopieren, Ergebnisse der
-  Vorverarbeitung. Die Anhang-Grenze gilt für Anhänge, für Dateien, die beim Anlegen eines Objekts mitkommen, und für jede Ablage in einem Objekt, auch durch die Inbox, Integration Flows, Worker Queues und den Client Service. Diese Wege hatten bisher keine Grenze.
-- **Die Anhang-Grenze nicht unter die Inbox-Grenze setzen**, wenn Kanäle Dokumente in Objekten ablegen. Sonst scheitert die Ablage eines größeren Inbox-Dokuments mit „zu groß“ und das Element bleibt im Status _Ready_. Mit den Standards (je 100 MB) passt es zusammen; prüfen Sie es vor allem nach dem Update, wenn die Inbox-Grenze höher als 100 MB steht.
+  Vorverarbeitung. Die Anhang-Grenze gilt nur für Uploads über den Client: für Anhänge und für Dateien, die beim Anlegen eines
+  Objekts mitkommen. Legen Dienste selbst Dokumente in einem Objekt ab (Inbox, Integration Flows, Worker Queues), prüft
+  sie diese Grenze nicht. Dort gelten die Grenzen der jeweiligen Dienste, bei der Inbox die Inbox-Grenze. Es muss deshalb
+  keine der beiden Grenzen höher stehen als die andere.
 - Sollen Dateien über 2048 MB erlaubt sein, aber nicht bis 50 GiB, stellen Sie im Designer 0 ein und senken die
   technische Obergrenze auf den gewünschten Wert.
 
@@ -189,7 +191,6 @@ Sie beide nach denselben drei Regeln ein.
 | Was Anwender sehen                                                    | Ursache                                                                                              | Was Sie tun können                                                                                  |
 | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | Meldung, dass die Datei zu groß ist                                   | Die Datei liegt über der Grenze aus dem Designer.                                                    | Grenze im Designer anheben oder 0 einstellen.                                                        |
-| Inbox-Dokument lässt sich nicht in einem Objekt ablegen, Element bleibt _Ready_ | Das Dokument liegt über der Anhang-Grenze des Object Storage, auch wenn die Inbox-Grenze höher ist. | Anhang-Grenze mindestens so hoch wie die Inbox-Grenze einstellen.                                    |
 | Bei „unbegrenzt“ trotzdem Ablehnung                                   | Die Datei liegt über der technischen Obergrenze.                                                     | `SERVICE__UPLOAD__MAXFILESIZEBYTES` anheben, siehe oben.                                            |
 | „Network Error“ oder Abbruch, im Protokoll des BFF steht nichts       | Ein Reverse Proxy lehnt die Anfrage ab oder bricht nach seiner Zeitgrenze ab.                        | Größe, Zwischenspeichern und Zeitgrenzen im Proxy einstellen, siehe [Reverse Proxy](#reverse-proxy). |
 | Anhänge brechen ab rund 28 MB ab, Inbox-Uploads ab 100 MB             | Der BFF Client Service läuft noch in einer Version ohne durchgereichten Upload.                     | BFF Client Service aktualisieren, siehe nächster Abschnitt.                                          |
@@ -211,11 +212,20 @@ Einstellungen im Reiter _Attachments_. Der Project Service nimmt sie schon an, d
 lehnt den Wert 0 (erlaubt waren 1 bis 2048) beziehungsweise den neuen Abschnitt noch ab. Warten Sie mit diesen
 Einstellungen, bis Inbox und Object Storage aktualisiert sind.
 
-**Vor dem Update prüfen:** Die Anhang-Grenze (Standard 100 MB) gilt im Object Storage für **alle** Schreibwege, auch für
-die Ablage aus der Inbox, aus Integration Flows (WriteObject), der Worker Queue und dem Client Service. Bisher hatten
-diese Wege keine Grenze. Steht die Inbox-Grenze höher als 100 MB (zum Beispiel 2048 MB), heben Sie die Anhang-Grenze im
-Designer **gleichzeitig mit dem Update** mindestens auf denselben Wert (oder auf 0) an. Sonst scheitert die Ablage größerer
-Dokumente, und die Elemente fallen auf _Ready_ zurück.
+**Vor dem Update prüfen:** Die Anhang-Grenze gilt nur für Uploads über den Client (Anhänge, Dateien beim Anlegen eines
+Objekts). Die Ablage durch Dienste, etwa aus der Inbox, aus Integration Flows oder der Worker Queue, ist davon nicht
+betroffen. Brauchen Ihre Anwender größere Objektanhänge, als der Standard von 100 MB erlaubt, setzen Sie vor dem Update
+des Object Storage Service die Umgebungsvariable `SERVICE__ATTACHMENTS__MAXFILESIZEMEGABYTES` (zum Beispiel
+`"2048"`, oder `"0"` für unbegrenzt) als Ausgangswert, am besten in `io3/docker-compose.override.yml`. Ein im Designer
+gespeicherter Wert ersetzt sie später. So gilt gleich nach dem Update die gewünschte Grenze und nicht kurz der Standard.
+
+```yaml
+# io3/docker-compose.override.yml
+services:
+  io-object-storage-service:
+    environment:
+      SERVICE__ATTACHMENTS__MAXFILESIZEMEGABYTES: "2048"
+```
 
 Weitere Einstellungen der beiden Dienste beschreiben
 [Inbox Service: Umgebungsvariablen](/handbuch/platform-services/inbox-service/env/docker) und
