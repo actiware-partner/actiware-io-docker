@@ -132,6 +132,10 @@ Ab diesem Stand rufen die Dienste Module nur noch mit `MODULE_SHARED_SECRET` auf
 
 Wird das Modul-Secret später geändert, Dienste und Module neu starten (`docker compose up -d`).
 
+### Update auf Dienste mit Upload-Grenzen
+
+Die einstellbaren Upload-Grenzen für Inbox und Objekt-Anhänge (0 = unbegrenzt bis zur technischen Obergrenze, Standard 50 GiB) brauchen neue Versionen mehrerer Dienste. Reihenfolge: Project Service, dann Designer, dann Inbox Service und Object Storage Service, dann BFF Client Service, zuletzt die Clients. Neue Pflichtvariablen gibt es nicht. Details und die Einstellungen für einen eigenen Reverse Proxy stehen unter [Große Dateien und Upload-Grenzen](./upload-grenzen.md).
+
 ---
 
 ## 5. Logs einsehen

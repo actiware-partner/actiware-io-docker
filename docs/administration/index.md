@@ -60,6 +60,11 @@ Die vollständige Schritt-für-Schritt-Anleitung mit allen Variablen, Zertifikat
   - Edge-Sidebar und weitere Adressen ergänzen
   - Warum man die Prüfung nicht abschalten sollte
 
+- [Große Dateien und Upload-Grenzen](./upload-grenzen.md)
+  - Grenzen für Inbox und Objekt-Anhänge im Designer, 0 = unbegrenzt
+  - Technische Obergrenze (Standard 50 GiB) über Umgebungsvariablen ändern
+  - Eigener Reverse Proxy: Größe, kein Zwischenspeichern, Zeitgrenzen
+
 ## Weiterführend
 
 - [Speichermangel und unerwartete Neustarts](/handbuch/troubleshooting/out-of-memory): Speicher der Docker-VM, Speicherlimits je Container, Aufräumen von Images und Logs.

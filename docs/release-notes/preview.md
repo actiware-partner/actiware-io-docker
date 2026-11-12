@@ -47,6 +47,7 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 - Healthcheck für Weaviate, Redis speichert seine Daten in einem eigenen Volume
 - Standardsprache der Container ist `de_DE.UTF-8`
 - Administratoren-Dokumentation überarbeitet und erweitert (Einrichtung, HTTPS-Umstellung, Passwortverwaltung) und in den zentralen Dokumentationsdienst übernommen
+- Neue Seite „Große Dateien und Upload-Grenzen“ (IO3-3635): Grenzen für Inbox und Objekt-Anhänge im Designer (0 = unbegrenzt), technische Obergrenze je Datei über `SERVICE__UPLOAD__MAXFILESIZEBYTES` (Standard 50 GiB), `SERVICE__UPLOAD__PARTSIZEMEGABYTES` und `SERVICE__UPLOAD__MAXCONCURRENCY` an Inbox und Object Storage, Einstellungen für einen eigenen Reverse Proxy (nginx, ingress-nginx, Traefik, Caddy, IIS/ARR) und Reihenfolge beim Update. Die Vorlage selbst hat keinen Reverse Proxy, die Compose-Dateien bleiben unverändert
 
 ## Bugfixes
 
