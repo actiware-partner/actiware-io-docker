@@ -4,7 +4,7 @@ title: Preview (Unreleased)
 
 # Preview (Unreleased)
 
-_Stand: 11.11.2026_
+_Stand: 12.11.2026_
 
 Diese Seite sammelt alle Änderungen seit dem letzten Release (`release-3.0`) bis zum aktuellen Stand.
 Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernommen.
@@ -16,6 +16,8 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 > ⚠️ **Sicherheitsrelevant:** Qdrant, Weaviate und Solr sind nur noch mit Zugangsdaten erreichbar (`QDRANT_API_KEY`, `WEAVIATE_API_KEY`, `SOLR_USER`/`SOLR_PASS`/`SOLR_TOKEN`), anonymer Zugriff auf Weaviate ist abgeschaltet.
 
 > ⚠️ **Sicherheitsrelevant:** `.env`-Dateien werden nicht mehr im Repository geführt. Als Vorlage dienen `io-backend/.env.example` und `io3/.env.example`, damit Kennwörter und Schlüssel nicht versehentlich eingecheckt werden.
+
+> ⚠️ **Sicherheitsrelevant:** Dienste rufen Module nur noch mit einem eigenen Modul-Secret auf (`MODULE_SHARED_SECRET`, neue Pflichtvariable in `io3/.env`). Es ist nicht das Plattform-Secret `SHARED_SECRET` und darf ihm nicht gleichen. Ohne Wert schlagen alle Modulaufrufe fehl. Beim Update erst die Variable setzen, dann die Dienste, dann die Module aktualisieren (IO3-3486, IO3-3483).
 
 > ⚠️ **Sicherheitsrelevant:** Das Einrichtungsskript `setup.sh` schlägt zufällige Kennwörter und Schlüssel vor und schreibt sie zusätzlich im Klartext in `INSTALLATIONSNACHWEIS.md`. Diese Datei nach dem sicheren Ablegen der Werte löschen.
 
@@ -31,6 +33,7 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 - Skill Runner als optionaler Ausführungs-Container für die Skripte von Agent-Skills (IO3-3075): vollständig, aber auskommentiert in `io3/services.docker-compose.yml` (Runner, Sidecar für die Netzsperre, internes Netz `skill_runner_net`, Volume), dazu die vorbereiteten Zeilen am `io-ai-chat-service`, die Variablen `SKILL_RUNNER_SHARED_SECRET`, `SKILL_RUNNER_MEM_LIMIT`, `SKILL_RUNNER_CPUS` und `VERSION_IO_SKILL_RUNNER` in `io3/.env.example` sowie die Anleitung „Skill Runner einschalten“. Der Runner wird nicht am Host veröffentlicht.
 - Integration Flow Service erhält die Endpunkte von Data Flow, Object Storage, OCR, Workflow, Inbox und Docs Service, Worker Queue Service die Endpunkte von Integration Flow, Workflow und Inbox Service (integrierte Prozessoren)
 - Integration-Client als eigener Client (Port `…203`), inklusive SSO-Freigabe im Identity Service
+- Modul-Secret `MODULE_SHARED_SECRET` (IO3-3486, IO3-3483): neuer Anker `x-moduleGrpcEnv` (`SERVICE__MODULEGRPC__SHAREDSECRET`) an Project, Worker Queue, Workflow, Inbox, AI RAG, AI Chat, Client Service, Data Flow, Integration Flow und Lookup sowie an allen Modulen in `io3/modules.docker-compose.yml`. Der SDK Service bekommt ihn nicht, er ruft keine Module mehr auf. `setup.sh` erzeugt den Wert (64 Zeichen HEX) und prüft, dass er nur ASCII enthält und nicht gleich `SHARED_SECRET` ist **[Sicherheit]**
 - Eigener Schlüssel `VAULT_ENCRYPTION_KEY` für die gespeicherten Zugangsdaten des Vault Service, getrennt vom `ENCRYPTION_KEY` der übrigen Services; `setup.sh` erzeugt ihn für neue Installationen **[Sicherheit]**
 
 ## Improvements
@@ -72,4 +75,5 @@ Dieses Preview ersetzt die Docker-Umgebung von ACTIWARE.IO 3 vollständig. Ein U
 - **Pfade:** Zertifikate, CA, Kerberos-Keytab und Importe werden standardmäßig unter `/aw/…` auf dem Host erwartet statt relativ zum Repository.
 - **Anmeldung:** Ab Identity Service 3.0.9 schlägt die Anmeldung mit `Invalid redirect_uri` fehl, wenn eine Client-Adresse fehlt. Zusätzliche Adressen in `ADDITIONAL_REDIRECT_URIS` eintragen, siehe „Anmelde-Adressen“.
 - **Logging:** Die Serilog-Variablen heißen `SERILOG__…` statt `SERVICE__SERILOG__…`. Eigene Overrides entsprechend umbenennen.
+- **Modul-Secret:** Reihenfolge beim Update: erst `MODULE_SHARED_SECRET` in `io3/.env` setzen, dann die Dienste, dann die Module aktualisieren (siehe Administratoren-Dokumentation, „Update auf Dienste mit Modul-Secret“). Ohne Wert schlagen alle Modulaufrufe mit `MODULE_SECRET_MISSING` fehl. Kundenmodule und Module aus eigenen Override-Dateien brauchen `SERVICE__MODULEGRPC__SHAREDSECRET: "${MODULE_SHARED_SECRET}"` ebenfalls. Kundenmodule, die bisher das Plattform-Secret prüfen, müssen auf das Modul-Secret umgestellt werden. Eine Änderung des Werts verlangt einen Neustart von Diensten und Modulen.
 - **Vault-Schlüssel:** Bestehende Installationen lassen `VAULT_ENCRYPTION_KEY` leer, der Vault verwendet dann weiter den `ENCRYPTION_KEY`. Seine gespeicherten Zugangsdaten sind mit diesem Schlüssel verschlüsselt; ein neuer Wert machte sie unlesbar.

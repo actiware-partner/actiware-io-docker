@@ -116,6 +116,22 @@ Alle verfügbaren Image-Variablen sind in den jeweiligen `.env.example`-Dateien 
 
 > Nach Änderung einer Image-Variable: `docker compose pull && docker compose up -d`
 
+### Update auf Dienste mit Modul-Secret
+
+Ab diesem Stand rufen die Dienste Module nur noch mit `MODULE_SHARED_SECRET` auf, und die Module prüfen es. Ohne Wert schlagen alle Modulaufrufe mit `MODULE_SECRET_MISSING` fehl. Reihenfolge beim Update im Verzeichnis `io3`:
+
+1. `MODULE_SHARED_SECRET` in `io3/.env` setzen (`openssl rand -hex 32`, nicht gleich `SHARED_SECRET`), siehe [Passwortverwaltung](./passwortverwaltung.md#modul-secret).
+2. Dienste aktualisieren:
+
+   ```bash
+   docker compose pull
+   docker compose up -d $(docker compose config --services | grep -v '^io-module-')
+   ```
+
+3. Module aktualisieren: `docker compose up -d`. Module aus eigenen Override-Dateien, auch Kundenmodule, bekommen vorher `SERVICE__MODULEGRPC__SHAREDSECRET: "${MODULE_SHARED_SECRET}"` und werden danach neu gestartet.
+
+Wird das Modul-Secret später geändert, Dienste und Module neu starten (`docker compose up -d`).
+
 ---
 
 ## 5. Logs einsehen

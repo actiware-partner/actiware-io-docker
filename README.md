@@ -214,6 +214,7 @@ cp .env.example .env
 | `DEFAULT_PASS` | Passwort des initialen Admin-Accounts — **sofort nach erstem Login ändern!** |
 | `CLIENT_SECRET` | OAuth2 Client-Secret für inter-Service-Kommunikation |
 | `SHARED_SECRET` | Shared Secret für interne Service-to-Service-Authentifizierung |
+| `MODULE_SHARED_SECRET` | Modul-Secret für die Aufrufe der Dienste an die Module, gleich in allen Diensten und Modulen, ungleich `SHARED_SECRET`, nur HEX oder base64. Ohne Wert schlagen alle Modulaufrufe fehl, siehe [Passwortverwaltung](docs/administration/passwortverwaltung.md#modul-secret) |
 | `ENCRYPTION_KEY` | Schlüssel für Datenverschlüsselung at rest |
 | `DATABASE_USER` | PostgreSQL-Benutzer (identisch zur Backend-`.env`) |
 | `DATABASE_PASS` | PostgreSQL-Passwort (identisch zur Backend-`.env`) |
@@ -275,6 +276,8 @@ Alle verfügbaren Image-Variablen sind in `io3/.env.example` vollständig dokume
 **Service-Endpunkte:**
 
 Die Adressen der Services untereinander stehen als YAML-Anker (`x-<service>Env`) am Anfang von `io3/services.docker-compose.yml` und werden pro Service eingebunden. Sie zeigen auf `${INSTANCE_HTTP_TYPE}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX}<Port>` (siehe Port-Schema) und tragen `SHARED_SECRET` als gemeinsames Secret; zusätzliche Werte in der `.env` sind dafür nicht nötig.
+
+Das Modul-Secret setzt der Anker `x-moduleGrpcEnv` (`SERVICE__MODULEGRPC__SHAREDSECRET` aus `MODULE_SHARED_SECRET`). Ihn bekommen die Dienste, die Module aufrufen (Project, Worker Queue, Workflow, Inbox, AI RAG, AI Chat, Client Service, Data Flow, Integration Flow, Lookup), und in `io3/modules.docker-compose.yml` alle Module. Eigene Module in Override-Dateien brauchen dieselbe Zeile.
 
 | Service | Eingebundene Endpunkte (Auszug) | Wofür |
 |---|---|---|
@@ -355,7 +358,7 @@ Bei `INSTANCE_PORT_PREFIX=30` (Standard Produktion):
 ## Hinweise
 
 - **Startreihenfolge:** Immer zuerst `io-backend`, dann `io3`.
-- **Passwörter:** Alle Secrets (`SHARED_SECRET`, `ENCRYPTION_KEY`, `CLIENT_SECRET`) müssen kryptographisch stark sein (min. 32 Zeichen, zufällig). Der `DEFAULT_PASS` ist **sofort nach dem ersten Login zu ändern**.
+- **Passwörter:** Alle Secrets (`SHARED_SECRET`, `MODULE_SHARED_SECRET`, `ENCRYPTION_KEY`, `CLIENT_SECRET`) müssen kryptographisch stark sein (min. 32 Zeichen, zufällig). `MODULE_SHARED_SECRET` darf nicht gleich `SHARED_SECRET` sein; eine Änderung verlangt einen Neustart von Diensten und Modulen. Der `DEFAULT_PASS` ist **sofort nach dem ersten Login zu ändern**.
 - **Zertifikate:** Alle Services erwarten TLS. Selbstsignierte Zertifikate sind möglich, sofern die CA (`ca.crt`) in alle Container eingebunden ist.
 - **Mehrere Instanzen:** Unterschiedliche `INSTANCE_PORT_PREFIX`-Werte und `DATABASE_PREFIX`-/`S3_BUCKET_NAME_PREFIX`-Werte verwenden, um Kollisionen zu vermeiden.
 - **Image-Versionen:** Jeder Service-Image-Pfad ist vollständig über eine ENV-Variable steuerbar — Registry, Image-Name und Tag. Defaults sind in den jeweiligen `.env.example`-Dateien vordefiniert und können direkt überschrieben werden.

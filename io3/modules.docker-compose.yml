@@ -20,6 +20,11 @@ x-projectEnv: &projectEnv
   SERVICE__ENDPOINTS__PROJECTSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}002"
   SERVICE__ENDPOINTS__PROJECTSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
 
+x-moduleGrpcEnv: &moduleGrpcEnv
+  # Modul-Secret (IO3-3486): dasselbe wie in services.docker-compose.yml. Jedes Modul,
+  # auch Kunden- und Override-Module, braucht es, sonst lehnt es Modulaufrufe ab.
+  SERVICE__MODULEGRPC__SHAREDSECRET: "${MODULE_SHARED_SECRET}"
+
 services:
   # Service: io-module-core
   io-module-core:
@@ -29,7 +34,7 @@ services:
 
     image: "${VERSION_IO_MODULE_CORE:-actiwareio/io-module-core:3-latest}"
     environment:
-      <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv]
+      <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv, *moduleGrpcEnv]
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}102:443"
     volumes:
@@ -51,7 +56,7 @@ services:
 
     image: "${VERSION_IO_MODULE_OUTPUT_MANAGER:-actiwareio/io-module-output-manager:3-latest}"
     environment:
-      <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv]
+      <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv, *moduleGrpcEnv]
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}134:443"
     volumes:

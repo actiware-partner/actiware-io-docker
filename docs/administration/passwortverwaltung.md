@@ -52,10 +52,27 @@ Datei: `io3/.env`
 | Variable | Pflicht | Beschreibung |
 |---|---|---|
 | `SHARED_SECRET` | ✅ | Shared Secret für interne Service-to-Service-Kommunikation — 32 Zeichen HEX |
+| `MODULE_SHARED_SECRET` | ✅ | Modul-Secret: Die Dienste senden es bei jedem Modulaufruf, die Module prüfen es — 64 Zeichen HEX, ungleich `SHARED_SECRET`. Siehe [Modul-Secret](#modul-secret) |
 | `ENCRYPTION_KEY` | ✅ | Schlüssel für Datenverschlüsselung at rest — 32 Zeichen HEX. Mit ihm verschlüsseln die Services auch die Sicherheitsdaten, die sie dem Vault senden |
 | `VAULT_ENCRYPTION_KEY` | ➖ | Eigener Schlüssel des Vault für seine gespeicherten Zugangsdaten — 32 Zeichen HEX. Leer: `ENCRYPTION_KEY` |
 | `CLIENT_SECRET` | ✅ | OAuth2 Client-Secret für inter-Service-Authentifizierung |
 | `CLIENT_ID` | ➖ | OAuth2 Client-ID — Default: `IoClient` |
+
+#### Modul-Secret
+
+Dienste rufen Module nur mit dem Modul-Secret auf (`authorization: Bearer <MODULE_SHARED_SECRET>`), die Module lehnen Aufrufe ohne passendes Secret ab. In den Containern heißt der Wert `SERVICE__MODULEGRPC__SHAREDSECRET`; die Compose-Dateien setzen ihn über den Anker `x-moduleGrpcEnv`.
+
+- **Pflicht:** Ohne Wert ruft kein Dienst ein Modul auf. Jeder Modulaufruf scheitert dann mit `MODULE_SECRET_MISSING`.
+- **Nicht gleich `SHARED_SECRET`:** Die Module kennen nur das Modul-Secret. Bei gleichem Wert starten die Dienste nicht.
+- **Nur ASCII:** Der Wert geht als gRPC-Header mit. HEX oder base64 verwenden, z. B. `openssl rand -hex 32`. `setup.sh` erzeugt ihn so und prüft beide Regeln.
+- **Gleicher Wert überall:** Alle Dienste und alle Module bekommen denselben Wert, auch Kundenmodule und Module aus eigenen Override-Dateien. YAML-Anker gelten nur innerhalb einer Datei; eigene Module brauchen die Zeile deshalb selbst:
+
+  ```yaml
+  environment:
+    SERVICE__MODULEGRPC__SHAREDSECRET: "${MODULE_SHARED_SECRET}"
+  ```
+
+- **Ändern (Rotation):** Neuen Wert in `io3/.env` eintragen, danach Dienste und Module neu starten (`docker compose up -d` im Verzeichnis `io3` und in jedem Override). Bis alle neu gestartet sind, scheitern Modulaufrufe.
 
 > [!WARNING]
 > `ENCRYPTION_KEY` und `VAULT_ENCRYPTION_KEY` nach der Inbetriebnahme nicht mehr ändern. Bestehende Installationen lassen `VAULT_ENCRYPTION_KEY` leer: Der Vault hat seine Zugangsdaten bisher mit dem `ENCRYPTION_KEY` verschlüsselt, mit einem neuen Wert wären sie nicht mehr lesbar.
@@ -142,6 +159,7 @@ Datei: `io3/.env`
 ## 4. Empfehlungen zur Passwortsicherheit
 
 - `SHARED_SECRET`, `ENCRYPTION_KEY` und `VAULT_ENCRYPTION_KEY`: mindestens 32 Zeichen, HEX-Format — Generator: https://www.browserling.com/tools/random-hex
+- `MODULE_SHARED_SECRET`: 64 Zeichen HEX (`openssl rand -hex 32`) oder base64, nie gleich `SHARED_SECRET`
 - `S3_ACCESS_KEY`: GUID oder sprechender Name — Generator: https://www.guidgenerator.com
 - `S3_SECRET_KEY`: mindestens 32 Zeichen, HEX oder zufällig
 - `DATABASE_PASS`, `CLIENT_SECRET`, `QDRANT_API_KEY`, `WEAVIATE_API_KEY`: mindestens 20 Zeichen, Groß-/Kleinbuchstaben, Zahlen, Sonderzeichen
