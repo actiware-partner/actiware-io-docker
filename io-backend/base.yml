@@ -2,6 +2,10 @@ services:
   stumpContainer:
     image: alpine #dummy
     restart: unless-stopped
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     logging:
       driver: "${LOG_SERVICE_DRIVER:-json-file}"
       options:

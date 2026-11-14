@@ -30,9 +30,9 @@ else
 fi
 
 info()    { printf '%s\n' "$*"; }
-ok()      { printf '%s✔%s %s\n' "$C_G" "$C_0" "$*"; }
+ok()      { printf '%s✓%s %s\n' "$C_G" "$C_0" "$*"; }
 warn()    { printf '%s!%s %s\n' "$C_Y" "$C_0" "$*" >&2; }
-die()     { printf '%s✘ %s%s\n' "$C_R" "$*" "$C_0" >&2; exit 1; }
+die()     { printf '%s✗ %s%s\n' "$C_R" "$*" "$C_0" >&2; exit 1; }
 section() { printf '\n%s== %s ==%s\n' "$C_B" "$*" "$C_0"; }
 
 usage() {
@@ -373,13 +373,13 @@ if [ "$WITH_IO3" -eq 1 ]; then
   setv DATABASE_PORT "$(getv INSTANCE_PORT_PREFIX)432"
   ask DEFAULT_USER "Initialer Admin-Benutzer" "admin"
 
-  ask_generated DEFAULT_PASS    "Kennwort des initialen Admins"          alnum24 "io3" "Anmeldung als $(getv DEFAULT_USER), nach dem ersten Login ändern"
-  ask_generated CLIENT_SECRET   "OAuth2 Client-Secret"                   alnum32 "io3" "Authentifizierung zwischen den Services"
-  ask_generated SHARED_SECRET   "Shared Secret (32 Zeichen HEX)"         hex32   "io3" "interne Service-zu-Service-Kommunikation"
-  ask_generated MODULE_SHARED_SECRET "Modul-Secret (64 Zeichen HEX)"       hex64   "io3" "Aufrufe der Dienste an die Module, gleich in allen Diensten und Modulen, ungleich SHARED_SECRET" check_module_secret
-  ask_generated ENCRYPTION_KEY  "Verschlüsselungsschlüssel (32 Zeichen HEX)" hex32 "io3" "Datenverschlüsselung at rest, nach Inbetriebnahme nicht mehr ändern"
-  ask_generated VAULT_ENCRYPTION_KEY "Schlüssel des Vault (32 Zeichen HEX)" hex32 "io3" "gespeicherte Zugangsdaten des Vault Service, nach Inbetriebnahme nicht mehr ändern"
-  ask_generated IDENTITY_ENCRYPTION_KEY "Schlüssel der Identity (64 Zeichen HEX)" hex64 "io3" "gespeicherte Secrets und Signaturschlüssel des Identity Service, nach Inbetriebnahme nicht mehr ändern" check_identity_key
+  ask_generated DEFAULT_PASS             "Kennwort des initialen Admins"              alnum24 "io3" "Anmeldung als $(getv DEFAULT_USER), nach dem ersten Login ändern"
+  ask_generated CLIENT_SECRET            "OAuth2 Client-Secret"                        alnum32 "io3" "Authentifizierung zwischen den Services"
+  ask_generated SHARED_SECRET            "Shared Secret (32 Zeichen HEX)"              hex32   "io3" "interne Service-zu-Service-Kommunikation"
+  ask_generated MODULE_SHARED_SECRET     "Modul-Secret (64 Zeichen HEX)"               hex64   "io3" "Aufrufe der Dienste an die Module, gleich in allen Diensten und Modulen, ungleich SHARED_SECRET" check_module_secret
+  ask_generated ENCRYPTION_KEY           "Verschlüsselungsschlüssel (32 Zeichen HEX)"  hex32   "io3" "Datenverschlüsselung at rest, nach Inbetriebnahme nicht mehr ändern"
+  ask_generated VAULT_ENCRYPTION_KEY     "Schlüssel des Vault (32 Zeichen HEX)"        hex32   "io3" "gespeicherte Zugangsdaten des Vault Service, nach Inbetriebnahme nicht mehr ändern"
+  ask_generated IDENTITY_ENCRYPTION_KEY  "Schlüssel der Identity (64 Zeichen HEX)"     hex64   "io3" "gespeicherte Secrets und Signaturschlüssel des Identity Service, nach Inbetriebnahme nicht mehr ändern" check_identity_key
 
   # --- E-Mail ---------------------------------------------------------------
   section "E-Mail-Versand (Microsoft Graph)"
@@ -395,25 +395,14 @@ if [ "$WITH_IO3" -eq 1 ]; then
     OPEN_ITEMS+=("E-Mail-Versand nicht konfiguriert: \`SMTP_*\` in \`io3/.env\` nachtragen (Pflicht laut Dokumentation).")
   fi
 
-  # --- KI -------------------------------------------------------------------
-  section "KI-Assistent (optional)"
-  if ask_yes_no "KI-Provider jetzt konfigurieren?" n; then
-    ask AI_PROVIDER "Provider (OpenAI, AzureOpenAI, Anthropic, Google, Mistral, Ollama, Custom)" "openai"
-    ask AI_MODEL "Modell"
-    ask_hidden_value "API-Key des KI-Providers"
-    setv AI_API_KEY "$REPLY"
-  else
-    setv AI_PROVIDER openai; setv AI_MODEL ''; setv AI_API_KEY ''
-  fi
-
-  # --- OCR ------------------------------------------------------------------
-  section "OCR (optional)"
-  if ask_yes_no "Mistral OCR jetzt konfigurieren?" n; then
-    ask_hidden_value "Mistral API-Key"
-    setv MISTRAL_API_KEY "$REPLY"
-  else
-    setv MISTRAL_API_KEY ''
-  fi
+  # --- KI + OCR -------------------------------------------------------------
+  # API keys for AI and OCR providers are managed via the Vault Service, not stored in .env.
+  # Configure after first login: Maintenance > Services > Project Service / OCR Service.
+  section "KI-Assistent und OCR"
+  info "  API-Keys für KI-Provider (OpenAI, Mistral, etc.) und Mistral OCR werden"
+  info "  NICHT in der .env gespeichert. Bitte nach dem ersten Login im Vault Service"
+  info "  konfigurieren: Maintenance > Services > Project Service bzw. OCR Service."
+  OPEN_ITEMS+=("KI-Provider und OCR API-Keys im Vault Service konfigurieren: Maintenance > Services > Project Service / OCR Service.")
 fi
 
 # -----------------------------------------------------------------------------
@@ -454,14 +443,12 @@ if [ "$WITH_IO3" -eq 1 ]; then
   build_env "$IO3_DIR" \
     EXTERNALADDRESS INSTANCE_PORT_PREFIX TIMEZONE \
     DEFAULT_USER DEFAULT_PASS CLIENT_SECRET SHARED_SECRET MODULE_SHARED_SECRET ENCRYPTION_KEY VAULT_ENCRYPTION_KEY IDENTITY_ENCRYPTION_KEY \
-    AI_PROVIDER AI_MODEL AI_API_KEY \
     SOLR_TOKEN SOLR_USER SOLR_PASS SOL_BASE_INDEXNAME \
     S3_BUCKET_NAME_PREFIX S3_ACCESS_KEY S3_SECRET_KEY \
     DATABASE_USER DATABASE_PASS DATABASE_SERVER DATABASE_PORT DATABASE_PREFIX \
     SMTP_PROFILE_FROM_ADDRESS SMTP_GRAPH_TENANT_ID SMTP_GRAPH_CLIENT_ID SMTP_GRAPH_CLIENT_SECRET \
     SMTP_BLOCKED_REPORT_RECIPIENTS \
-    QDRANT_API_KEY WEAVIATE_API_KEY \
-    MISTRAL_API_KEY
+    QDRANT_API_KEY WEAVIATE_API_KEY
   check_placeholders "$IO3_DIR/.env"
 fi
 
@@ -551,9 +538,9 @@ EOF
     if [ "$WITH_IO3" -eq 1 ]; then
       cat <<'EOF'
 
-Zugangsdaten externer Dienste (SMTP-Client-Secret, KI- und Mistral-API-Key) stehen
-bewusst nicht in diesem Dokument. Sie liegen nur in `io3/.env` und stammen aus dem
-jeweiligen Anbieter-Portal.
+API-Keys für KI-Provider und Mistral OCR werden bewusst nicht in der .env oder
+in diesem Dokument gespeichert. Sie werden nach dem ersten Login im Vault Service
+konfiguriert: Maintenance > Services > Project Service / OCR Service.
 EOF
     fi
 
@@ -570,6 +557,7 @@ EOF
 2. Zertifikate bereitstellen, siehe [docs/https-umstellung.md](docs/https-umstellung.md).
 3. Zuerst \`io-backend\`, danach \`io3\` starten: \`docker compose up -d\` im jeweiligen Verzeichnis.
 4. Erste Anmeldung und Kennwort des Admins ändern.
+5. KI-Provider und OCR API-Keys im Vault Service konfigurieren.
 
 Die Konfigurationsdateien \`io-backend/.env\` und \`io3/.env\` liegen nur auf diesem Server und sind für Git ausgeschlossen.
 EOF
@@ -591,4 +579,5 @@ ${C_B}Wichtig:${C_0}
   1. Kennwörter aus ${C_B}INSTALLATIONSNACHWEIS.md${C_0} sichern (Passwortmanager).
   2. Danach die Datei löschen: rm INSTALLATIONSNACHWEIS.md
   3. Zertifikate bereitstellen, dann io-backend und anschließend io3 starten.
+  4. KI-Provider und OCR API-Keys im Vault Service konfigurieren.
 EOF
