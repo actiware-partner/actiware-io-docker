@@ -443,11 +443,37 @@ services:
           *docsEnv,
           *notificationEnv,
           *integrationFlowEnv,
+          *aiAgentFunctionsEnv,
           *webClientPublic,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-workflow"
       SERVICE__ENDPOINTS__S3__BUCKETNAME: "${S3_BUCKET_NAME_PREFIX}-workflow"
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
+      # KI-Aktionen der Regeln ("KI ausführen", "KI-Transition"): Agenten laufen im AiChat (Port 007), Prompt Functions
+      # in den AI Agent Functions (Anker aiAgentFunctionsEnv). Siehe docs/administration/verschluesselung-und-ki-auftraege.md.
+      SERVICE__ENDPOINTS__AICHATSERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}007"
+      SERVICE__ENDPOINTS__AICHATSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
+      # KI-Aufträge (Tabelle workflow_ai_jobs): Ohne Worker reihen sich die Aufträge ein und warten. Wirkt ohne Neustart.
+      SERVICE__AIJOBS__ENABLED: "${WORKFLOW_AI_JOBS_ENABLED:-true}"
+      # SERVICE__AIJOBS__MAXPARALLEL: 4
+      # SERVICE__AIJOBS__INTERVALSECONDS: 5
+      # SERVICE__AIJOBS__LEASESECONDS: 120
+      # SERVICE__AIJOBS__RETENTIONDAYS: 90
+      # Berichts-Aufträge am Ende eines Vorgangs (Tabelle workflow_report_jobs): Seite in Docs, Mail, Dokument am Objekt.
+      SERVICE__REPORTJOBS__ENABLED: "${WORKFLOW_REPORT_JOBS_ENABLED:-true}"
+      # SERVICE__REPORTJOBS__MAXPARALLEL: 2
+      # SERVICE__REPORTJOBS__INTERVALSECONDS: 10
+      # SERVICE__REPORTJOBS__LEASESECONDS: 120
+      # SERVICE__REPORTJOBS__RETENTIONDAYS: 90
+      # Schlüsselring für die Daten sensibler Workflows (IO3-3797), Pflicht: Ein leerer oder ungültiger Schlüssel
+      # verhindert den Start. Base64 von 32 Byte (openssl rand -base64 32), nie gleich SHARED_SECRET, nie ändern.
+      SERVICE__ENCRYPTION__KEYS__0__ID: "${WORKFLOW_ENCRYPTION_KEY_ID:-kek-1}"
+      SERVICE__ENCRYPTION__KEYS__0__VALUE: "${WORKFLOW_ENCRYPTION_KEY}"
+      # Rotation in zwei Rollouts: erst den neuen Schlüssel zusätzlich eintragen, dann WORKFLOW_ENCRYPTION_ACTIVE_KEY_ID
+      # auf seine Id setzen. Den alten Schlüssel erst nach der Aufbewahrungsfrist der Sicherungen entfernen.
+      # SERVICE__ENCRYPTION__KEYS__1__ID: "${WORKFLOW_ENCRYPTION_KEY_2_ID}"
+      # SERVICE__ENCRYPTION__KEYS__1__VALUE: "${WORKFLOW_ENCRYPTION_KEY_2}"
+      SERVICE__ENCRYPTION__ACTIVEKEYID: "${WORKFLOW_ENCRYPTION_ACTIVE_KEY_ID:-${WORKFLOW_ENCRYPTION_KEY_ID:-kek-1}}"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}008:443"
     depends_on:
@@ -981,6 +1007,14 @@ services:
       SERVICE__SUBSCRIBERS__AICHAT__SHAREDSECRET: "${SHARED_SECRET}"
       SERVICE__SUBSCRIBERS__OCR__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}005"
       SERVICE__SUBSCRIBERS__OCR__SHAREDSECRET: "${SHARED_SECRET}"
+      # Hauptschlüssel für Profile mit der Verschlüsselungsrichtlinie "local", Pflicht: Ein leerer oder ungültiger
+      # Schlüssel verhindert den Start. Base64 von 32 Byte (openssl rand -base64 32), nie ändern.
+      SERVICE__ENCRYPTION__MASTERKEYS__1: "${TRANSCRIPTION_ENCRYPTION_KEY}"
+      # Rotation in zwei Rollouts: erst den neuen Schlüssel zusätzlich eintragen, dann TRANSCRIPTION_ENCRYPTION_ACTIVE_KEY_ID=2.
+      # SERVICE__ENCRYPTION__MASTERKEYS__2: "${TRANSCRIPTION_ENCRYPTION_KEY_2}"
+      SERVICE__ENCRYPTION__ACTIVEKEYID: "${TRANSCRIPTION_ENCRYPTION_ACTIVE_KEY_ID:-1}"
+      # Pseudonyme der Benutzer im Audit (mindestens 32 Byte als Base64). Leer: alle Benutzer erscheinen nur als "Person".
+      SERVICE__AUDIT__PSEUDONYMKEY: "${TRANSCRIPTION_AUDIT_PSEUDONYM_KEY:-}"
     ports:
       - "${INSTANCE_PORT_PREFIX}021:443"
     depends_on:

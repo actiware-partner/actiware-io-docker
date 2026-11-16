@@ -56,6 +56,10 @@ Datei: `io3/.env`
 | `ENCRYPTION_KEY` | ✅ | Schlüssel für Datenverschlüsselung at rest — 32 Zeichen HEX. Mit ihm verschlüsseln die Services auch die Sicherheitsdaten, die sie dem Vault senden |
 | `VAULT_ENCRYPTION_KEY` | ➖ | Eigener Schlüssel des Vault für seine gespeicherten Zugangsdaten — 32 Zeichen HEX. Leer: `ENCRYPTION_KEY` |
 | `IDENTITY_ENCRYPTION_KEY` | ✅ | Eigener Schlüssel des Identity Service für seine gespeicherten Secrets und Signaturschlüssel — 64 Zeichen HEX, mindestens 32 Zeichen. Kein Rückfall auf `ENCRYPTION_KEY`: Ohne ihn startet der Identity Service nicht |
+| `WORKFLOW_ENCRYPTION_KEY` | ✅ | Hauptschlüssel des Workflow Service für die Daten sensibler Workflows — Base64 von 32 Byte (`openssl rand -base64 32`), ungleich `SHARED_SECRET`. Ohne ihn startet der Workflow Service nicht. Siehe [Verschlüsselung und KI-Aufträge](./verschluesselung-und-ki-auftraege.md) |
+| `WORKFLOW_ENCRYPTION_KEY_ID` | ➖ | Name des Workflow-Schlüssels im Schlüsselring — Default: `kek-1` |
+| `TRANSCRIPTION_ENCRYPTION_KEY` | ✅ | Hauptschlüssel des AI Transcription Service für Profile mit der Verschlüsselungsrichtlinie `local` — Base64 von 32 Byte. Ohne ihn startet der Dienst nicht |
+| `TRANSCRIPTION_AUDIT_PSEUDONYM_KEY` | ➖ | Schlüssel für die Pseudonyme der Benutzer im Audit der AI Transcription — mindestens 32 Byte als Base64. Leer: alle Benutzer erscheinen als „Person“ |
 | `CLIENT_SECRET` | ✅ | OAuth2 Client-Secret für inter-Service-Authentifizierung |
 | `CLIENT_ID` | ➖ | OAuth2 Client-ID — Default: `IoClient` |
 
@@ -76,7 +80,7 @@ Dienste rufen Module nur mit dem Modul-Secret auf (`authorization: Bearer <MODUL
 - **Ändern (Rotation):** Neuen Wert in `io3/.env` eintragen, danach Dienste und Module neu starten (`docker compose up -d` im Verzeichnis `io3` und in jedem Override). Bis alle neu gestartet sind, scheitern Modulaufrufe.
 
 > [!WARNING]
-> `ENCRYPTION_KEY`, `VAULT_ENCRYPTION_KEY` und `IDENTITY_ENCRYPTION_KEY` nach der Inbetriebnahme nicht mehr ändern. Bestehende Installationen lassen `VAULT_ENCRYPTION_KEY` leer: Der Vault hat seine Zugangsdaten bisher mit dem `ENCRYPTION_KEY` verschlüsselt, mit einem neuen Wert wären sie nicht mehr lesbar.
+> `ENCRYPTION_KEY`, `VAULT_ENCRYPTION_KEY`, `IDENTITY_ENCRYPTION_KEY`, `WORKFLOW_ENCRYPTION_KEY` und `TRANSCRIPTION_ENCRYPTION_KEY` nach der Inbetriebnahme nicht mehr ändern. Workflow- und Transcription-Schlüssel wechseln nur über die Rotation, siehe [Verschlüsselung und KI-Aufträge](./verschluesselung-und-ki-auftraege.md). Bestehende Installationen lassen `VAULT_ENCRYPTION_KEY` leer: Der Vault hat seine Zugangsdaten bisher mit dem `ENCRYPTION_KEY` verschlüsselt, mit einem neuen Wert wären sie nicht mehr lesbar.
 >
 > `IDENTITY_ENCRYPTION_KEY` setzt eine bestehende Installation einmal, und zwar vor dem ersten Start eines Identity Service mit IO3-3489: Dieser Start stellt die gespeicherten Secrets auf den Schlüssel um. Lief ein Identity Service mit IO3-3489 schon ohne eigenen Schlüssel, hat er den `ENCRYPTION_KEY` verwendet; dann diesen Wert eintragen. Danach gilt dasselbe wie für die anderen Schlüssel: Mit einem neuen Wert startet der Identity Service zwar, kann aber keine Tokens mehr ausstellen, und Anmeldungen schlagen fehl.
 
@@ -163,6 +167,7 @@ Dienste rufen Module nur mit dem Modul-Secret auf (`authorization: Bearer <MODUL
 
 - `SHARED_SECRET`, `ENCRYPTION_KEY`, `VAULT_ENCRYPTION_KEY` und `IDENTITY_ENCRYPTION_KEY`: mindestens 32 Zeichen, HEX-Format — Generator: https://www.browserling.com/tools/random-hex
 - `MODULE_SHARED_SECRET`: 64 Zeichen HEX (`openssl rand -hex 32`) oder base64, nie gleich `SHARED_SECRET`
+- `WORKFLOW_ENCRYPTION_KEY`, `TRANSCRIPTION_ENCRYPTION_KEY` und `TRANSCRIPTION_AUDIT_PSEUDONYM_KEY`: genau 32 Zufallsbytes als Base64 (`openssl rand -base64 32`, 44 Zeichen). Den `WORKFLOW_ENCRYPTION_KEY` nie im selben Backup wie die Datenbank ablegen
 - `S3_ACCESS_KEY`: GUID oder sprechender Name — Generator: https://www.guidgenerator.com
 - `S3_SECRET_KEY`: mindestens 32 Zeichen, HEX oder zufällig
 - `DATABASE_PASS`, `CLIENT_SECRET`, `QDRANT_API_KEY`, `WEAVIATE_API_KEY`: mindestens 20 Zeichen, Groß-/Kleinbuchstaben, Zahlen, Sonderzeichen

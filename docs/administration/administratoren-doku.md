@@ -132,6 +132,16 @@ Ab diesem Stand rufen die Dienste Module nur noch mit `MODULE_SHARED_SECRET` auf
 
 Wird das Modul-Secret später geändert, Dienste und Module neu starten (`docker compose up -d`).
 
+### Update auf Dienste mit verschlüsselten sensiblen Workflows und KI-Aufträgen
+
+Der Workflow Service verschlüsselt die Daten sensibler Workflows und führt KI- und Berichts-Aufträge aus, der AI Transcription Service verschlüsselt Aufträge mit der Richtlinie `local`. Beide starten nur mit ihrem Schlüssel. Reihenfolge beim Update im Verzeichnis `io3`:
+
+1. `WORKFLOW_ENCRYPTION_KEY`, `WORKFLOW_ENCRYPTION_KEY_ID=kek-1` und `TRANSCRIPTION_ENCRYPTION_KEY` in `io3/.env` setzen (je `openssl rand -base64 32`), optional `TRANSCRIPTION_AUDIT_PSEUDONYM_KEY`. Die Schlüssel getrennt von den Datenbanksicherungen ablegen.
+2. Optional `WORKFLOW_AI_JOBS_ENABLED` und `WORKFLOW_REPORT_JOBS_ENABLED` setzen (Standard `true`).
+3. `docker compose pull && docker compose up -d`.
+
+Details, Rotation und Voraussetzungen der KI-Aufträge: [Verschlüsselung und KI-Aufträge](./verschluesselung-und-ki-auftraege.md).
+
 ### Update auf Dienste mit Upload-Grenzen
 
 Die einstellbaren Upload-Grenzen für Inbox und Objekt-Anhänge (0 = unbegrenzt bis zur technischen Obergrenze, Standard 50 GiB) brauchen neue Versionen mehrerer Dienste. Reihenfolge: Project Service, dann Designer, dann Inbox Service und Object Storage Service, dann BFF Client Service, zuletzt die Clients. Neue Pflichtvariablen gibt es nicht. Details und die Einstellungen für einen eigenen Reverse Proxy stehen unter [Große Dateien und Upload-Grenzen](./upload-grenzen.md).

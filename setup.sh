@@ -81,13 +81,18 @@ rand_guid() {
   fi
 }
 
-generate() { # $1 = Art (alnum32 | hex32 | hex64 | guid | alnum24)
+rand_b64key() { # 32 Zufallsbytes als Base64 (44 Zeichen), wie "openssl rand -base64 32"
+  head -c 32 /dev/urandom | base64 | tr -d '\n'
+}
+
+generate() { # $1 = Art (alnum32 | hex32 | hex64 | guid | alnum24 | b64key)
   case "$1" in
     alnum32) rand_alnum 32 ;;
     alnum24) rand_alnum 24 ;;
     hex32)   rand_hex 32 ;;
     hex64)   rand_hex 64 ;;
     guid)    rand_guid ;;
+    b64key)  rand_b64key ;;
     *) die "Interner Fehler: unbekannte Generator-Art '$1'" ;;
   esac
 }
@@ -231,6 +236,21 @@ check_module_secret() {
 check_identity_key() {
   if [ "${#1}" -lt 32 ]; then
     warn "IDENTITY_ENCRYPTION_KEY braucht mindestens 32 Zeichen, sonst startet der Identity Service nicht."
+    return 1
+  fi
+  return 0
+}
+
+# Workflow Service und AI Transcription Service starten nur mit einem
+# Schlüssel aus genau 32 Byte als Base64 (IO3-3797). Der Workflow Service
+# lehnt außerdem einen Schlüssel ab, der dem SHARED_SECRET gleicht.
+check_b64_key() {
+  if ! printf '%s' "$1" | LC_ALL=C grep -Eq '^[A-Za-z0-9+/]{43}=$'; then
+    warn "Der Schlüssel muss Base64 von genau 32 Byte sein (44 Zeichen, endet auf \"=\"), z. B. openssl rand -base64 32."
+    return 1
+  fi
+  if [ "$1" = "$(getv SHARED_SECRET)" ]; then
+    warn "Der Schlüssel darf nicht gleich SHARED_SECRET sein."
     return 1
   fi
   return 0
@@ -380,6 +400,11 @@ if [ "$WITH_IO3" -eq 1 ]; then
   ask_generated ENCRYPTION_KEY           "Verschlüsselungsschlüssel (32 Zeichen HEX)"  hex32   "io3" "Datenverschlüsselung at rest, nach Inbetriebnahme nicht mehr ändern"
   ask_generated VAULT_ENCRYPTION_KEY     "Schlüssel des Vault (32 Zeichen HEX)"        hex32   "io3" "gespeicherte Zugangsdaten des Vault Service, nach Inbetriebnahme nicht mehr ändern"
   ask_generated IDENTITY_ENCRYPTION_KEY  "Schlüssel der Identity (64 Zeichen HEX)"     hex64   "io3" "gespeicherte Secrets und Signaturschlüssel des Identity Service, nach Inbetriebnahme nicht mehr ändern" check_identity_key
+  # Feste Id des ersten Schlüssels im Schlüsselring des Workflow Service; eine Rotation ergänzt weitere.
+  setv WORKFLOW_ENCRYPTION_KEY_ID "kek-1"
+  ask_generated WORKFLOW_ENCRYPTION_KEY  "Schlüssel des Workflow Service (Base64, 32 Byte)" b64key "io3" "Daten sensibler Workflows (Schlüssel-Id $(getv WORKFLOW_ENCRYPTION_KEY_ID)), getrennt von der Datenbank sichern, nach Inbetriebnahme nicht mehr ändern" check_b64_key
+  ask_generated TRANSCRIPTION_ENCRYPTION_KEY "Hauptschlüssel der AI Transcription (Base64, 32 Byte)" b64key "io3" "Audio und Transkripte verschlüsselter Aufträge, nach Inbetriebnahme nicht mehr ändern" check_b64_key
+  ask_generated TRANSCRIPTION_AUDIT_PSEUDONYM_KEY "Pseudonym-Schlüssel des Transcription-Audits (Base64)" b64key "io3" "Pseudonyme der Benutzer im Audit der AI Transcription"
 
   # --- E-Mail ---------------------------------------------------------------
   section "E-Mail-Versand (Microsoft Graph)"
@@ -443,6 +468,7 @@ if [ "$WITH_IO3" -eq 1 ]; then
   build_env "$IO3_DIR" \
     EXTERNALADDRESS INSTANCE_PORT_PREFIX TIMEZONE \
     DEFAULT_USER DEFAULT_PASS CLIENT_SECRET SHARED_SECRET MODULE_SHARED_SECRET ENCRYPTION_KEY VAULT_ENCRYPTION_KEY IDENTITY_ENCRYPTION_KEY \
+    WORKFLOW_ENCRYPTION_KEY WORKFLOW_ENCRYPTION_KEY_ID TRANSCRIPTION_ENCRYPTION_KEY TRANSCRIPTION_AUDIT_PSEUDONYM_KEY \
     SOLR_TOKEN SOLR_USER SOLR_PASS SOL_BASE_INDEXNAME \
     S3_BUCKET_NAME_PREFIX S3_ACCESS_KEY S3_SECRET_KEY \
     DATABASE_USER DATABASE_PASS DATABASE_SERVER DATABASE_PORT DATABASE_PREFIX \
@@ -487,7 +513,8 @@ write_proof() {
 > - Das Dokument dient **ausschließlich als Installationsnachweis** und ist keine Ablage für Kennwörter.
 > - Nach dem Sichern **diese Datei löschen** (\`rm INSTALLATIONSNACHWEIS.md\`).
 > - Nicht per E-Mail versenden und nicht in Git einchecken.
-> - Den \`ENCRYPTION_KEY\`, den \`VAULT_ENCRYPTION_KEY\` und den \`IDENTITY_ENCRYPTION_KEY\` nach der Inbetriebnahme nicht mehr ändern: bereits verschlüsselte Daten wären sonst nicht mehr lesbar.
+> - Den \`ENCRYPTION_KEY\`, den \`VAULT_ENCRYPTION_KEY\`, den \`IDENTITY_ENCRYPTION_KEY\`, den \`WORKFLOW_ENCRYPTION_KEY\` und den \`TRANSCRIPTION_ENCRYPTION_KEY\` nach der Inbetriebnahme nicht mehr ändern: bereits verschlüsselte Daten wären sonst nicht mehr lesbar.
+> - Den \`WORKFLOW_ENCRYPTION_KEY\` getrennt von den Datenbanksicherungen aufbewahren: Wer beides hat, liest die Daten sensibler Workflows.
 
 ## Installation
 

@@ -216,6 +216,9 @@ cp .env.example .env
 | `SHARED_SECRET` | Shared Secret für interne Service-to-Service-Authentifizierung |
 | `MODULE_SHARED_SECRET` | Modul-Secret für die Aufrufe der Dienste an die Module, gleich in allen Diensten und Modulen, ungleich `SHARED_SECRET`, nur HEX oder base64. Ohne Wert schlagen alle Modulaufrufe fehl, siehe [Passwortverwaltung](docs/administration/passwortverwaltung.md#modul-secret) |
 | `ENCRYPTION_KEY` | Schlüssel für Datenverschlüsselung at rest |
+| `IDENTITY_ENCRYPTION_KEY` | Eigener Schlüssel des Identity Service, ohne ihn startet er nicht |
+| `WORKFLOW_ENCRYPTION_KEY` | Hauptschlüssel für die Daten sensibler Workflows, Base64 von 32 Byte (`openssl rand -base64 32`), ohne ihn startet der Workflow Service nicht, siehe [Verschlüsselung und KI-Aufträge](docs/administration/verschluesselung-und-ki-auftraege.md) |
+| `TRANSCRIPTION_ENCRYPTION_KEY` | Hauptschlüssel des AI Transcription Service, Base64 von 32 Byte, ohne ihn startet der Dienst nicht |
 | `DATABASE_USER` | PostgreSQL-Benutzer (identisch zur Backend-`.env`) |
 | `DATABASE_PASS` | PostgreSQL-Passwort (identisch zur Backend-`.env`) |
 | `DATABASE_SERVER` | Hostname/IP des PostgreSQL-Servers |
@@ -243,6 +246,10 @@ cp .env.example .env
 | `ADDITIONAL_REDIRECT_URIS` | — | Weitere Anmelde-Rücksprungadressen, getrennt durch `;` (z. B. Edge-Sidebar), siehe [Anmelde-Adressen](docs/administration/anmelde-adressen.md) |
 | `REDIRECT_URI_CHECK` | `enforce` | Prüfung der Anmelde-Adressen; `warn` nur kurzzeitig zur Fehlersuche |
 | `DEFAULT_VALIDITY_PERIOD` | `86400` | Token-Gültigkeit in Sekunden |
+| `WORKFLOW_ENCRYPTION_KEY_ID` | `kek-1` | Name des Workflow-Schlüssels im Schlüsselring |
+| `TRANSCRIPTION_AUDIT_PSEUDONYM_KEY` | — | Pseudonyme der Benutzer im Audit der AI Transcription; leer: „Person“ |
+| `WORKFLOW_AI_JOBS_ENABLED` | `true` | KI-Aufträge der Workflow-Regeln („KI ausführen“, „KI-Transition“) abarbeiten |
+| `WORKFLOW_REPORT_JOBS_ENABLED` | `true` | Berichts-Aufträge am Ende eines Workflow-Vorgangs abarbeiten |
 | `DATABASE_PORT` | `30432` | PostgreSQL-Port |
 | `DATABASE_ENCODING` | `UTF8` | Datenbankzeichensatz |
 | `DATABASE_PREFIX` | `io3` | Präfix für alle Datenbanknamen |
