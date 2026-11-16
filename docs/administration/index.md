@@ -55,6 +55,11 @@ Die vollständige Schritt-für-Schritt-Anleitung mit allen Variablen, Zertifikat
   - Auskommentierten Block in `services.docker-compose.yml` einschalten
   - AiChat anbinden, Netzsperre, Prüfen
 
+- [Verschlüsselung und KI-Aufträge](./verschluesselung-und-ki-auftraege.md)
+  - Schlüssel für sensible Workflows und für die AI Transcription (Pflicht)
+  - Rotation in zwei Schritten, Sicherung getrennt von der Datenbank
+  - KI- und Berichts-Aufträge des Workflow Service ein- und ausschalten
+
 - [Anmelde-Adressen](./anmelde-adressen.md)
   - Welche Rücksprungadressen die Vorlage für die Anmeldung einträgt
   - Edge-Sidebar und weitere Adressen ergänzen

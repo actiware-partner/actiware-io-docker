@@ -4,7 +4,7 @@ title: Preview (Unreleased)
 
 # Preview (Unreleased)
 
-_Stand: 12.11.2026_
+_Stand: 16.11.2026_
 
 Diese Seite sammelt alle Änderungen seit dem letzten Release (`release-3.0`) bis zum aktuellen Stand.
 Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernommen.
@@ -18,6 +18,8 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 > ⚠️ **Sicherheitsrelevant:** `.env`-Dateien werden nicht mehr im Repository geführt. Als Vorlage dienen `io-backend/.env.example` und `io3/.env.example`, damit Kennwörter und Schlüssel nicht versehentlich eingecheckt werden.
 
 > ⚠️ **Sicherheitsrelevant:** Dienste rufen Module nur noch mit einem eigenen Modul-Secret auf (`MODULE_SHARED_SECRET`, neue Pflichtvariable in `io3/.env`). Es ist nicht das Plattform-Secret `SHARED_SECRET` und darf ihm nicht gleichen. Ohne Wert schlagen alle Modulaufrufe fehl. Beim Update erst die Variable setzen, dann die Dienste, dann die Module aktualisieren (IO3-3486, IO3-3483).
+
+> ⚠️ **Sicherheitsrelevant:** Der Workflow Service verschlüsselt die Daten sensibler Workflows mit einem eigenen Hauptschlüssel (`WORKFLOW_ENCRYPTION_KEY`, neue Pflichtvariable in `io3/.env`, IO3-3797), der AI Transcription Service Aufträge mit der Richtlinie `local` mit `TRANSCRIPTION_ENCRYPTION_KEY` (Pflicht). Beide Dienste starten ohne gültigen Schlüssel nicht. Die Schlüssel nie ändern, nur rotieren, und getrennt von den Datenbanksicherungen aufbewahren.
 
 > ⚠️ **Sicherheitsrelevant:** Das Einrichtungsskript `setup.sh` schlägt zufällige Kennwörter und Schlüssel vor und schreibt sie zusätzlich im Klartext in `INSTALLATIONSNACHWEIS.md`. Diese Datei nach dem sicheren Ablegen der Werte löschen.
 
@@ -35,6 +37,10 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 - Integration-Client als eigener Client (Port `…203`), inklusive SSO-Freigabe im Identity Service
 - Modul-Secret `MODULE_SHARED_SECRET` (IO3-3486, IO3-3483): neuer Anker `x-moduleGrpcEnv` (`SERVICE__MODULEGRPC__SHAREDSECRET`) an Project, Worker Queue, Workflow, Inbox, AI RAG, AI Chat, Client Service, Data Flow, Integration Flow und Lookup sowie an allen Modulen in `io3/modules.docker-compose.yml`. Der SDK Service bekommt ihn nicht, er ruft keine Module mehr auf. `setup.sh` erzeugt den Wert (64 Zeichen HEX) und prüft, dass er nur ASCII enthält und nicht gleich `SHARED_SECRET` ist **[Sicherheit]**
 - Eigener Schlüssel `VAULT_ENCRYPTION_KEY` für die gespeicherten Zugangsdaten des Vault Service, getrennt vom `ENCRYPTION_KEY` der übrigen Services; `setup.sh` erzeugt ihn für neue Installationen **[Sicherheit]**
+- Verschlüsselung sensibler Workflows (IO3-3797): Der Workflow Service bekommt den Schlüsselring `SERVICE__ENCRYPTION__KEYS__0__ID`/`__VALUE` und `SERVICE__ENCRYPTION__ACTIVEKEYID` aus `WORKFLOW_ENCRYPTION_KEY`, `WORKFLOW_ENCRYPTION_KEY_ID` (Standard `kek-1`) und `WORKFLOW_ENCRYPTION_ACTIVE_KEY_ID`. Vorbereitete, auskommentierte Zeilen für einen zweiten Schlüssel bei der Rotation. `setup.sh` erzeugt den Schlüssel (Base64, 32 Byte) und prüft Format und Abstand zu `SHARED_SECRET` **[Sicherheit]**
+- AI Transcription Service: Hauptschlüssel `SERVICE__ENCRYPTION__MASTERKEYS__1` aus `TRANSCRIPTION_ENCRYPTION_KEY` (Pflicht), `SERVICE__ENCRYPTION__ACTIVEKEYID` aus `TRANSCRIPTION_ENCRYPTION_ACTIVE_KEY_ID` (Standard `1`) und Pseudonym-Schlüssel des Audits `SERVICE__AUDIT__PSEUDONYMKEY` aus `TRANSCRIPTION_AUDIT_PSEUDONYM_KEY` (optional); `setup.sh` erzeugt beide Schlüssel **[Sicherheit]**
+- KI- und Berichts-Aufträge des Workflow Service (Epic IO3-3779): `SERVICE__AIJOBS__ENABLED` und `SERVICE__REPORTJOBS__ENABLED` über `WORKFLOW_AI_JOBS_ENABLED` und `WORKFLOW_REPORT_JOBS_ENABLED`, in der Vorlage eingeschaltet. Der Workflow Service erhält dafür die Endpunkte von AiChat (`SERVICE__ENDPOINTS__AICHATSERVICE__*`) und AI Agent Functions (`x-aiAgentFunctionsEnv`); die übrigen Stellschrauben stehen auskommentiert mit ihren Standardwerten in der Compose-Datei
+- Neue Seite „Verschlüsselung und KI-Aufträge“: Schlüssel, Rotation in zwei Schritten, Sicherung, Voraussetzungen und Fehlercodes der KI-Aufträge, Update einer bestehenden Installation
 - Installationsschlüssel des Identity Service `IDENTITY_ENCRYPTION_KEY` (IO3-3489) als `SERVICE__SECURITY__IDENTITYENCRYPTIONKEY`, Pflicht und ohne Rückfall auf `ENCRYPTION_KEY`. Der Identity Service schützt damit seine gespeicherten Secrets und Signaturschlüssel und startet ohne ihn nicht; `setup.sh` erzeugt ihn für neue Installationen (64 Zeichen HEX) **[Sicherheit]**
 
 ## Improvements
@@ -62,6 +68,7 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 - Vault Service: `SERVICE__SECURITY__SHAREDSECRET` erhält in `x-secureEnv` den `ENCRYPTION_KEY` statt des `SHARED_SECRET`. Mit dem `SHARED_SECRET` scheiterten Publish und Test-Publish mit `ERROR_SHARED_DECRYPTION_FAILED`, weil der Vault die Sicherheitsdaten des Project Service nicht entschlüsseln konnte
 - Vault-Schlüssel: `SERVICE__SECURITY__ENCRYPTIONKEY` wird jetzt einheitlich im gemeinsamen Sicherheitsblock von Services und Modulen gesetzt (`VAULT_ENCRYPTION_KEY`, leer: `ENCRYPTION_KEY`), statt nur am Vault Service **[Sicherheit]**
 - Services mit Qdrant-Anbindung erhalten den `QDRANT_API_KEY` über `SERVICE__ENDPOINTS__VECTORSTORE__QDRANT__APIKEY` und erreichen den abgesicherten Qdrant **[Sicherheit]**
+- `io3/.env.example`: Die Hinweiszeile zu `CLIENT_ID`/`CLIENT_SECRET` war nicht als Kommentar markiert und machte die erzeugte `.env` ungültig
 - Log-Level-Einstellungen greifen wieder: SQL-Befehle erscheinen nicht mehr auf Stufe `Information`
 - Importverzeichnis wird für Core-Modul und Output Manager mit geteilter Mount-Propagation eingebunden, nachträglich eingehängte Laufwerke sind damit im Container sichtbar
 - Solr-Healthcheck nutzt die Zugangsdaten und den tatsächlich angelegten Core (`SOL_BASE_INDEXNAME`)
@@ -80,3 +87,4 @@ Dieses Preview ersetzt die Docker-Umgebung von ACTIWARE.IO 3 vollständig. Ein U
 - **Modul-Secret:** Reihenfolge beim Update: erst `MODULE_SHARED_SECRET` in `io3/.env` setzen, dann die Dienste, dann die Module aktualisieren (siehe Administratoren-Dokumentation, „Update auf Dienste mit Modul-Secret“). Ohne Wert schlagen alle Modulaufrufe mit `MODULE_SECRET_MISSING` fehl. Kundenmodule und Module aus eigenen Override-Dateien brauchen `SERVICE__MODULEGRPC__SHAREDSECRET: "${MODULE_SHARED_SECRET}"` ebenfalls. Kundenmodule, die bisher das Plattform-Secret prüfen, müssen auf das Modul-Secret umgestellt werden. Eine Änderung des Werts verlangt einen Neustart von Diensten und Modulen.
 - **Identity-Schlüssel:** Bestehende Installationen tragen `IDENTITY_ENCRYPTION_KEY` (mindestens 32 Zeichen, z. B. `openssl rand -hex 32`) vor dem ersten Start des neuen Identity Service in `io3/.env` ein, sonst startet er nicht. Lief er schon ohne eigenen Schlüssel, hat er den `ENCRYPTION_KEY` verwendet; dann diesen Wert eintragen. Danach nicht mehr ändern.
 - **Vault-Schlüssel:** Bestehende Installationen lassen `VAULT_ENCRYPTION_KEY` leer, der Vault verwendet dann weiter den `ENCRYPTION_KEY`. Seine gespeicherten Zugangsdaten sind mit diesem Schlüssel verschlüsselt; ein neuer Wert machte sie unlesbar.
+- **Verschlüsselung sensibler Workflows und AI Transcription:** Vor dem Update `WORKFLOW_ENCRYPTION_KEY`, `WORKFLOW_ENCRYPTION_KEY_ID=kek-1` und `TRANSCRIPTION_ENCRYPTION_KEY` in `io3/.env` setzen (je `openssl rand -base64 32`). Ohne gültigen Schlüssel starten Workflow Service und AI Transcription Service nicht. Wer die KI-Aufträge noch nicht nutzen will, setzt `WORKFLOW_AI_JOBS_ENABLED=false`. Siehe „Verschlüsselung und KI-Aufträge“.
