@@ -192,11 +192,27 @@ Die Zertifikatspfade sind identisch zum Backend — dieselben Dateien werden ver
 > Falls bereits für den Backend-Stack vorhanden, ist kein weiterer Schritt nötig.
 
 **Optional — Kerberos (nur bei Active Directory / GSSAPI-Integration):**
+
+Die Keytab wird im Designer hochgeladen: Wartung → Identity Service → Kerberos. Der Identity Service speichert sie
+verschlüsselt in seiner Datenbank und schreibt sie beim Hochladen und bei jedem Start nach `KRB5_KTNAME`
+(in der Vorlage `/opt/awio/keytab/krb5.keytab`, auf dem Host `KERBEROS_KEYTAB_DIR`, Standard `/aw/kerberos`). Der
+Designer warnt, wenn die Keytab keinen Eintrag `HTTP/<Host>` für den Host des Logins enthält; speichern lässt sie sich
+trotzdem.
+
+Dafür braucht der Container Schreibrecht auf das Verzeichnis. Der Dienst läuft als Benutzer `io` (UID 3000) mit der
+Gruppe `0` (`group_add` in der Vorlage):
+
 ```bash
 mkdir -p /aw/kerberos
-cp <keytab-datei> /aw/kerberos/krb5.keytab
-chmod 640 /aw/kerberos/krb5.keytab
+chgrp 0 /aw/kerberos
+chmod 770 /aw/kerberos
 ```
+
+- Fehlt das Schreibrecht, scheitert der Upload mit einer Meldung, die Pfad, Benutzer und Abhilfe nennt; gespeichert
+  wird dann nichts.
+- Wer die Keytab lieber selbst verwaltet, legt sie als Datei ab und hängt sie schreibgeschützt ein (`:ro`). Der
+  Designer zeigt sie dann nur an, und der Identity Service überschreibt sie nicht.
+- Ist `KRB5_KTNAME` leer oder nicht gesetzt, zeigt der Designer „Kerberos nicht eingerichtet“.
 
 ### 2.2 `.env` konfigurieren
 
