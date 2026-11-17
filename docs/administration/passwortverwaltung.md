@@ -55,7 +55,7 @@ Datei: `io3/.env`
 | `MODULE_SHARED_SECRET` | ✅ | Modul-Secret: Die Dienste senden es bei jedem Modulaufruf, die Module prüfen es — 64 Zeichen HEX, ungleich `SHARED_SECRET`. Siehe [Modul-Secret](#modul-secret) |
 | `ENCRYPTION_KEY` | ✅ | Schlüssel für Datenverschlüsselung at rest — 32 Zeichen HEX. Mit ihm verschlüsseln die Services auch die Sicherheitsdaten, die sie dem Vault senden |
 | `VAULT_ENCRYPTION_KEY` | ➖ | Eigener Schlüssel des Vault für seine gespeicherten Zugangsdaten — 32 Zeichen HEX. Leer: `ENCRYPTION_KEY` |
-| `IDENTITY_ENCRYPTION_KEY` | ✅ | Eigener Schlüssel des Identity Service für seine gespeicherten Secrets und Signaturschlüssel — 64 Zeichen HEX, mindestens 32 Zeichen. Kein Rückfall auf `ENCRYPTION_KEY`: Ohne ihn startet der Identity Service nicht |
+| `IDENTITY_ENCRYPTION_KEY` | ✅ | Eigener Schlüssel des Identity Service für seine gespeicherten Secrets und Signaturschlüssel — `setup.sh` erzeugt 64 Zeichen HEX. Keine Mindestlänge, darf nicht leer sein; empfohlen ist ein langer, zufälliger Wert. Kein Rückfall auf `ENCRYPTION_KEY`: Ohne ihn startet der Identity Service nicht |
 | `WORKFLOW_ENCRYPTION_KEY` | ✅ | Hauptschlüssel des Workflow Service für die Daten sensibler Workflows — Base64 von 32 Byte (`openssl rand -base64 32`), ungleich `SHARED_SECRET`. Ohne ihn startet der Workflow Service nicht. Siehe [Verschlüsselung und KI-Aufträge](./verschluesselung-und-ki-auftraege.md) |
 | `WORKFLOW_ENCRYPTION_KEY_ID` | ➖ | Name des Workflow-Schlüssels im Schlüsselring — Default: `kek-1` |
 | `TRANSCRIPTION_ENCRYPTION_KEY` | ✅ | Hauptschlüssel des AI Transcription Service für Profile mit der Verschlüsselungsrichtlinie `local` — Base64 von 32 Byte. Ohne ihn startet der Dienst nicht |
@@ -165,7 +165,8 @@ Dienste rufen Module nur mit dem Modul-Secret auf (`authorization: Bearer <MODUL
 
 ## 4. Empfehlungen zur Passwortsicherheit
 
-- `SHARED_SECRET`, `ENCRYPTION_KEY`, `VAULT_ENCRYPTION_KEY` und `IDENTITY_ENCRYPTION_KEY`: mindestens 32 Zeichen, HEX-Format — Generator: https://www.browserling.com/tools/random-hex
+- `SHARED_SECRET`, `ENCRYPTION_KEY` und `VAULT_ENCRYPTION_KEY`: mindestens 32 Zeichen, HEX-Format — Generator: https://www.browserling.com/tools/random-hex
+- `IDENTITY_ENCRYPTION_KEY`: keine Mindestlänge, darf nicht leer sein. Empfohlen ist ein langer, zufälliger Wert, z. B. `openssl rand -hex 32`
 - `MODULE_SHARED_SECRET`: 64 Zeichen HEX (`openssl rand -hex 32`) oder base64, nie gleich `SHARED_SECRET`
 - `WORKFLOW_ENCRYPTION_KEY`, `TRANSCRIPTION_ENCRYPTION_KEY` und `TRANSCRIPTION_AUDIT_PSEUDONYM_KEY`: genau 32 Zufallsbytes als Base64 (`openssl rand -base64 32`, 44 Zeichen). Den `WORKFLOW_ENCRYPTION_KEY` nie im selben Backup wie die Datenbank ablegen
 - `S3_ACCESS_KEY`: GUID oder sprechender Name — Generator: https://www.guidgenerator.com

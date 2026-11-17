@@ -232,10 +232,11 @@ check_module_secret() {
 }
 
 # Der Identity Service startet ohne gültigen Installationsschlüssel nicht und
-# fällt nicht auf ENCRYPTION_KEY zurück (IO3-3489): mindestens 32 Zeichen.
+# fällt nicht auf ENCRYPTION_KEY zurück (IO3-3489). Eine Mindestlänge gibt es
+# nicht (IO3-3937), er darf nur nicht leer sein.
 check_identity_key() {
-  if [ "${#1}" -lt 32 ]; then
-    warn "IDENTITY_ENCRYPTION_KEY braucht mindestens 32 Zeichen, sonst startet der Identity Service nicht."
+  if [ -z "$(printf '%s' "$1" | tr -d '[:space:]')" ]; then
+    warn "IDENTITY_ENCRYPTION_KEY darf nicht leer sein, sonst startet der Identity Service nicht."
     return 1
   fi
   return 0
