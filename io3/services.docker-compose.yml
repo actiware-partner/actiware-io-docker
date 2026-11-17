@@ -254,6 +254,12 @@ services:
       SERVICE__ENDPOINTS__CLIENTSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}002:443"
+    healthcheck:
+      test: ["CMD", "curl", "-fsk", "https://localhost:443/system/health/ready"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5      
     depends_on:
       io-identity-service:
         condition: service_started

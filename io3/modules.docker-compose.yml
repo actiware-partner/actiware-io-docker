@@ -65,6 +65,49 @@ services:
         target: /imports
         bind:
           propagation: shared
-#    depends_on:
-#      io-project-service:
-#        condition: service_healthy
+    depends_on:
+      io-project-service:
+        condition: service_healthy
+
+# Service: io-module-barcode
+  io-module-barcode:
+    extends:
+      file: base.yml
+      service: httpsContainer
+ 
+    image: "${VERSION_IO_MODULE_BARCODE:-actiwareio/io-module-barcode:3-latest}"
+    environment:
+      <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv, *moduleGrpcEnv]
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}112:443"
+    volumes:
+      - type: bind
+        source: "${IMPORTS_DIR:-/aw/imports}"
+        target: /imports
+        # bind:
+        #   propagation: shared
+    depends_on:
+      io-project-service:
+        condition: service_healthy
+ 
+  # Service: io-module-pdf-processor
+  io-module-pdf-processor:
+    extends:
+      file: base.yml
+      service: httpsContainer
+ 
+    image: "${VERSION_IO_MODULE_PDF_PROCESSOR:-actiwareio/io-module-pdf-processor:3-latest}"
+    environment:
+      <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv, *moduleGrpcEnv]
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}126:443"
+    volumes:
+      - type: bind
+        source: "${IMPORTS_DIR:-/aw/imports}"
+        target: /imports
+        # bind:
+        #   propagation: shared
+    depends_on:
+      io-project-service:
+        condition: service_healthy
+ 
