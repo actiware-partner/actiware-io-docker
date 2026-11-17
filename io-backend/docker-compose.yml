@@ -178,8 +178,10 @@ services:
       service: httpsContainer
 
     image: "${VERSION_IO_BACKEND_SOLR:-solr:9}"
-    ports:
-      - "${INSTANCE_PORT_PREFIX:-30}983:8983"
+    # Port 30983 is exposed via tls-proxy (nginx), not directly here.
+    # tls-proxy terminates TLS and forwards plain HTTP to solr:8983.
+    expose:
+      - 8983
     volumes:
       - "solr-data:/var/solr"
       - "/etc/ssl/certs:/etc/solr/ssl:ro"
@@ -213,6 +215,8 @@ services:
     restart: unless-stopped
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}050:8080"
+    # gRPC port 50051 is exposed via tls-proxy (nginx), not directly here.
+    # tls-proxy terminates TLS and forwards plain HTTP/2 gRPC to weaviate:50051.
 
     volumes:
       - "weaviate-data:/var/lib/weaviate"
@@ -280,16 +284,21 @@ services:
     environment:
       ENABLE_CUDA: "0"
 
-  weaviate-grpc-proxy:
+  tls-proxy:
+    # nginx TLS termination proxy for services that cannot natively terminate TLS:
+    #   - Weaviate gRPC port 50051 (plain HTTP/2) → host port 30051 (TLS + ALPN h2)
+    #   - Solr port 8983 (plain HTTP)             → host port 30983 (TLS)
     image: nginx:alpine
     restart: unless-stopped
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}051:50051"
+      - "${INSTANCE_PORT_PREFIX:-30}983:8983"
     volumes:
       - "./config/nginx-grpc-proxy/nginx.conf:/etc/nginx/nginx.conf:ro"
       - "${CERT_DIR:-/aw/certs}:/tls:ro"
     depends_on:
       - weaviate
+      - solr
 
 volumes:
   postgres-data:
