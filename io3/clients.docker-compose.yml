@@ -5,6 +5,13 @@ services:
       file: base.yml
       service: httpsContainer
 
+    # nginx entrypoint starts as root and drops to uid/gid 101 (nginx user) via setuid/setgid/chown.
+    # cap_drop: ALL (from httpsContainer) removes these, so we add them back for all nginx clients.
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+
     image: "${VERSION_IO_CLIENT_DESIGNER:-actiwareio/io-designer:3-latest}"
     depends_on:
       - io-identity-service
@@ -22,6 +29,11 @@ services:
     extends:
       file: base.yml
       service: httpsContainer
+
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
 
     image: "${VERSION_IO_CLIENT_WEB:-actiwareio/io-client:3-latest}"
     environment:
@@ -42,6 +54,11 @@ services:
       file: base.yml
       service: httpsContainer
 
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+
     image: "${VERSION_IO_INTEGRATION_CLIENT:-actiwareio/io-integration-client:3-latest}"
     environment:
       SERVICE__ENDPOINTS__SERVICE__NAME: "Default"
@@ -55,4 +72,3 @@ services:
         condition: service_started #Eigentlich healthy, aber er hat keinen Healthcheck
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}203:443"
-

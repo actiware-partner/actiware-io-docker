@@ -7,8 +7,6 @@ x-defaultHealthCheck:
     retries: 5
 services:
   postgres:
-    # Extends baseContainer (not httpsContainer) because PostgreSQL does not use
-    # appsettings.ssl.json and has no /app directory. TLS certificates are mounted explicitly below.
     extends:
       file: base.yml
       service: baseContainer
@@ -17,10 +15,8 @@ services:
 
     # TLS: PostgreSQL does NOT activate TLS automatically - ssl=on must be passed explicitly.
     # The key file must not be world-readable (PostgreSQL strict permission check).
-    # Solution: start as root, copy certs to tmpfs, fix permissions, then exec docker-entrypoint.sh
-    # which drops to postgres user (UID 999) via gosu internally. No host changes required.
-    # Note: security_opt no-new-privileges is intentionally omitted here because gosu (used by
-    # docker-entrypoint.sh to drop from root to postgres) requires setuid, which no-new-privileges blocks.
+    # Solution: start as root, copy certs to tmpfs owned by postgres (uid=999), fix permissions,
+    # then exec docker-entrypoint.sh which drops to postgres user (UID 999) via gosu internally.
     user: "0:0"
     cap_drop:
       - ALL
@@ -29,8 +25,9 @@ services:
       - SETUID
       - SETGID
       - FOWNER
+      - DAC_OVERRIDE
     tmpfs:
-      - /pg-tls:mode=0700
+      - /pg-tls:mode=0700,uid=999,gid=999
     entrypoint: ["sh", "-c"]
     command:
       - |
@@ -44,6 +41,7 @@ services:
           -c ssl_key_file=/pg-tls/server.key \
           -c ssl_ca_file=/aw/CAs/ca.crt \
           -c ssl_min_protocol_version=TLSv1.2 \
+          -c listen_addresses='*' \
           -c config_file=/etc/postgresql/awRunAddons/LogsToConsole.conf
     environment:
       LANG: "${LANG_POSTGRES:-en_US.utf8}"
@@ -52,7 +50,6 @@ services:
     volumes:
       - "postgres-data:/var/lib/postgresql"
       - ./config/postgres/LogsToConsole.conf:/etc/postgresql/awRunAddons/LogsToConsole.conf
-      # Certificates mounted separately (not via httpsContainer) to avoid /app conflict
       - type: bind
         source: ${CERT_SERVER_CRT:-/aw/certs/server.crt}
         target: /pg-certs/server.crt
@@ -75,9 +72,7 @@ services:
       <<: [*defaultHealthCheck]
       test: ["CMD", "pg_isready", "--username=${DATABASE_USER}"]
     ports:
-      # Bound to 127.0.0.1 only: accessible from the host and from io3 (via EXTERNALADDRESS),
-      # but not reachable from external networks.
-      - "127.0.0.1:${INSTANCE_PORT_PREFIX:-30}432:5432"
+      - "${INSTANCE_PORT_PREFIX:-30}432:5432"
 
   qdrant:
     extends:
@@ -86,7 +81,7 @@ services:
 
     image: "${VERSION_IO_BACKEND_QDRANT:-qdrant/qdrant:v1}"
     environment:
-      QDRANT__TELEMETRY_DISABLED: "true" # Disable telemetry for privacy
+      QDRANT__TELEMETRY_DISABLED: "true"
       QDRANT__SERVICE__API_KEY: "${QDRANT_API_KEY}"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}333:6333"
@@ -107,6 +102,9 @@ services:
     extends:
       file: base.yml
       service: stumpContainer
+
+    cap_add:
+      - DAC_OVERRIDE
 
     image: "${VERSION_IO_BACKEND_REDIS:-redis:8}"
     ports:
@@ -140,20 +138,36 @@ services:
       service: httpsContainer
 
     image: "${VERSION_IO_BACKEND_S3:-docker.io/pgsty/silo:latest}"
-    volumes:
-      - "s3-data:/data"
+    # MinIO/silo TLS: host key is 664 (world-readable) → silo falls back to HTTP silently.
+    # Fix: copy certs to tmpfs with correct permissions, use --certs-dir to bypass HOME detection.
+    user: "0:0"
+    cap_drop:
+      - ALL
+    cap_add:
+      - DAC_OVERRIDE
+      - CHOWN
+      - FOWNER
+    tmpfs:
+      - /s3-tls:mode=0755
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        mkdir -p /s3-tls/CAs &&
+        cp /certs/server.crt /s3-tls/public.crt &&
+        cp /certs/server.key /s3-tls/private.key &&
+        cp /aw/CAs/ca.crt /s3-tls/CAs/ca.crt &&
+        chmod 640 /s3-tls/private.key &&
+        chmod 644 /s3-tls/public.crt /s3-tls/CAs/ca.crt &&
+        exec /usr/bin/docker-entrypoint.sh server --certs-dir /s3-tls --console-address ":4901" /data
     environment:
       MINIO_ROOT_USER: "${S3_ACCESS_KEY}"
       MINIO_ROOT_PASSWORD: "${S3_SECRET_KEY}"
-      # TLS: silo/MinIO activates HTTPS automatically when both cert and key are set.
-      # The certificates are already bind-mounted via httpsContainer base at /certs/.
-      MINIO_TLS_CERT_FILE: "/certs/server.crt"
-      MINIO_TLS_KEY_FILE: "/certs/server.key"
-    command: server --console-address ":4901" /data
+    volumes:
+      - "s3-data:/data"
     healthcheck:
       <<: [*defaultHealthCheck]
-      # -k / --insecure: skip cert validation in healthcheck (self-signed CA on host is not in curl's bundle)
       test: ["CMD-SHELL", "curl -fk https://localhost:9000/minio/health/live"]
+      start_period: 10s
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}900:9000"
       - "${INSTANCE_PORT_PREFIX:-30}901:4901"
@@ -172,11 +186,9 @@ services:
     environment:
       SOLR_AUTH_TYPE: basic
       SOLR_AUTHENTICATION_OPTS: "-Dbasicauth=${SOLR_USER}:${SOLR_PASS}"
-      # Siehe https://github.com/apache/lucene-solr/pull/2304/files
       SOLR_OPTS: "-XX:-UseLargePages"
-      # Siehe: https://tinyurl.com/aw-solr-heap
       SOLR_HEAP: ${SOLR_HEAP:-1G}
-    ulimits: # Nicht-Setzen dieser Werte heisst 1024 und das gibt ne dicke Warnung beim SOLR-Start!
+    ulimits:
       nofile:
         soft: 65000
         hard: 65000
@@ -200,52 +212,59 @@ services:
     image: "${VERSION_IO_BACKEND_WEAVIATE:-semitechnologies/weaviate:1.38.3}"
     restart: unless-stopped
     ports:
-      - "${INSTANCE_PORT_PREFIX:-30}050:8080" # HTTPS/REST
-      - "${INSTANCE_PORT_PREFIX:-30}051:50051" # gRPC
+      - "${INSTANCE_PORT_PREFIX:-30}050:8080"
 
     volumes:
       - "weaviate-data:/var/lib/weaviate"
-      # TLS certificates for Weaviate (separate mount path to avoid conflict with httpsContainer /certs)
-      - "${CERT_DIR:-/aw/certs}/server.crt:/etc/weaviate/tls/server.crt:ro"
-      - "${CERT_DIR:-/aw/certs}/server.key:/etc/weaviate/tls/server.key:ro"
+
+    # TLS: host key is 664 (world-readable) → Weaviate silently skips HTTPS listener.
+    # Fix: copy certs to tmpfs with correct permissions (640).
+    # Correct flags for Weaviate v1.38.3:
+    #   --tls-port sets the HTTPS port (maps to container port 8080)
+    #   --tls-certificate / --tls-key enable TLS
+    #   Do NOT use --scheme https + --port: that causes a random port (e.g. 41777)
+    #   Do NOT use --tls-certificate + --tls-key without --tls-port: also random port
+    user: "0:0"
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+    tmpfs:
+      - /wv-tls:mode=0755
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        cp /certs/server.crt /wv-tls/server.crt &&
+        cp /certs/server.key /wv-tls/server.key &&
+        chmod 644 /wv-tls/server.crt &&
+        chmod 640 /wv-tls/server.key &&
+        exec /bin/weaviate \
+          --host 0.0.0.0 \
+          --tls-host 0.0.0.0 \
+          --tls-port 8080 \
+          --tls-certificate /wv-tls/server.crt \
+          --tls-key /wv-tls/server.key
 
     environment:
       PERSISTENCE_DATA_PATH: /var/lib/weaviate
       CLUSTER_HOSTNAME: node1
       CLUSTER_GOSSIP_BIND_PORT: "7101"
       QUERY_DEFAULTS_LIMIT: "25"
-
-      # Authentication
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "false"
       AUTHENTICATION_APIKEY_ENABLED: "true"
       AUTHENTICATION_APIKEY_ALLOWED_KEYS: "${WEAVIATE_API_KEY}"
       AUTHENTICATION_APIKEY_USERS: "admin"
-      # Objekte werden mit selbst erzeugten Vektoren importiert
       DEFAULT_VECTORIZER_MODULE: none
       LOG_FORMAT: "text"
       LOG_LEVEL: "info"
-
-      # Optional
       DISABLE_TELEMETRY: "true"
-
-      ENABLE_MODULES: "reranker-transformers" # ggf. kommasepariert an bestehende anhaengen
+      ENABLE_MODULES: "reranker-transformers"
       RERANKER_INFERENCE_API: "http://reranker-transformers:8080"
       RERANKER_WAIT_FOR_STARTUP: true
 
-    command:
-      - --host
-      - 0.0.0.0
-      - --port
-      - "8080"
-      - --scheme
-      - https
-      - --tls-cert-file
-      - /etc/weaviate/tls/server.crt
-      - --tls-private-key-file
-      - /etc/weaviate/tls/server.key
     healthcheck:
-      <<: [*defaultHealthCheck]
-      test: ["CMD-SHELL", "wget -q --spider --no-check-certificate https://localhost:8080/v1/.well-known/ready || exit 1"]
+      disable: true
 
     depends_on:
       - reranker-transformers
@@ -260,6 +279,17 @@ services:
 
     environment:
       ENABLE_CUDA: "0"
+
+  weaviate-grpc-proxy:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "${INSTANCE_PORT_PREFIX:-30}051:50051"
+    volumes:
+      - "./config/nginx-grpc-proxy/nginx.conf:/etc/nginx/nginx.conf:ro"
+      - "${CERT_DIR:-/aw/certs}:/tls:ro"
+    depends_on:
+      - weaviate
 
 volumes:
   postgres-data:

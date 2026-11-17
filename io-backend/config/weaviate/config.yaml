@@ -1,0 +1,11 @@
+---
+# Weaviate v1.38.3 configuration file
+# TLS is configured here because --tls-certificate/--tls-key CLI flags cause Weaviate
+# to listen on a random port instead of the configured --port value.
+# Using the config file sets TLS on the correct port (8080).
+scheme: https
+host: 0.0.0.0
+port: 8080
+tls:
+  certFile: /wv-tls/server.crt
+  keyFile: /wv-tls/server.key
