@@ -41,11 +41,8 @@ Transaktion, bevor er die Datei annimmt.
 - Sollen Dateien über 2048 MB erlaubt sein, aber nicht bis 50 GiB, stellen Sie im Designer 0 ein und senken die
   technische Obergrenze auf den gewünschten Wert.
 
-Die Bedienung beschreibt das Designer-Handbuch unter
-[Die größte erlaubte Datei festlegen](/handbuch/user-guides/apps/app-designer/inbox/kanaele/uebersicht#die-größte-erlaubte-datei-festlegen)
-(Inbox) und
-[Die größte erlaubte Datei eines Anhangs festlegen](/handbuch/user-guides/apps/app-designer/storage/dokumenttypen#die-größte-erlaubte-datei-eines-anhangs-festlegen)
-(Objekt-Anhänge).
+Die Einstellung erfolgt dienstweit unter _Maintenance_ → _Services_ im jeweiligen Dienst,
+wie in der Tabelle oben angegeben.
 
 Die Umgebungsvariablen `SERVICE__CONTENT__MAXFILESIZEMEGABYTES` (Inbox) und `SERVICE__ATTACHMENTS__MAXFILESIZEMEGABYTES`
 (Object Storage) liefern nur den Ausgangswert. Ein im Designer gespeicherter Wert ersetzt sie. Die Vorlage setzt keine
@@ -119,7 +116,7 @@ Uploads ab, bevor die Dienste sie sehen, und Anwender erhalten nur „Network Er
    50 GiB bei 100 Mbit/s rund 72 Minuten.
 
 Öffnen Anwender die Programme über den Proxy unter einem anderen Namen, tragen Sie die Adressen außerdem für die
-Anmeldung ein, siehe [Anmelde-Adressen](./anmelde-adressen.md).
+Anmeldung ein, siehe [Anmelde-Adressen](/handbuch/admin-guides/docker/anmelde-adressen).
 
 ### nginx
 
