@@ -11,7 +11,7 @@ Der Runner ist **optional**. Ohne ihn funktionieren Skills weiter, nur ihre Skri
 In der Vorlage steht der Runner vollständig, aber auskommentiert in `io3/services.docker-compose.yml`. Diese Seite beschreibt, wie Sie ihn einschalten.
 
 > [!NOTE]
-> Die Images `actiwareio/io3-skill-runner` und `actiwareio/io3-skill-runner-office` stehen auf Docker Hub ab dem ersten Release des Skill Runners bereit.
+> Die Images `ghcr.io/actiware-partner/io3-skill-runner` und `ghcr.io/actiware-partner/io3-skill-runner-office` stehen ab dem ersten Release des Skill Runners in `ghcr.io/actiware-partner` bereit. Die Anmeldung beschreibt die [Administratoren-Doku](administratoren-doku.md#anmelden-an-der-registry).
 
 ## Voraussetzungen
 
@@ -23,8 +23,8 @@ In der Vorlage steht der Runner vollständig, aber auskommentiert in `io3/servic
 
 | Image | Wofür |
 | --- | --- |
-| `actiwareio/io3-skill-runner` | Python 3.12, Node 22, Bibliotheken für Word, Excel, PowerPoint und PDF, pandoc, Poppler, qpdf. Reicht für die meisten Skills. |
-| `actiwareio/io3-skill-runner-office` | Wie oben, zusätzlich LibreOffice. Nötig, wenn Skills Dokumente umwandeln, Formeln neu berechnen oder PDFs aus Office-Dateien erzeugen. Deutlich größer. |
+| `ghcr.io/actiware-partner/io3-skill-runner` | Python 3.12, Node 22, Bibliotheken für Word, Excel, PowerPoint und PDF, pandoc, Poppler, qpdf. Reicht für die meisten Skills. |
+| `ghcr.io/actiware-partner/io3-skill-runner-office` | Wie oben, zusätzlich LibreOffice. Nötig, wenn Skills Dokumente umwandeln, Formeln neu berechnen oder PDFs aus Office-Dateien erzeugen. Deutlich größer. |
 
 Das Image legen Sie über `VERSION_IO_SKILL_RUNNER` in `io3/.env` fest. Der Sidecar für die Netzsperre nutzt dasselbe Image.
 
