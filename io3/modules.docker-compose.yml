@@ -32,7 +32,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_MODULE_CORE:-actiwareio/io-module-core:3-latest}"
+    image: "${VERSION_IO_MODULE_CORE:-ghcr.io/actiware-partner/io-module-core:3-latest}"
     environment:
       <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv, *moduleGrpcEnv]
     ports:
@@ -54,7 +54,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_MODULE_OUTPUT_MANAGER:-actiwareio/io-module-output-manager:3-latest}"
+    image: "${VERSION_IO_MODULE_OUTPUT_MANAGER:-ghcr.io/actiware-partner/io-module-output-manager:3-latest}"
     environment:
       <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv, *moduleGrpcEnv]
     ports:
@@ -75,7 +75,7 @@ services:
       file: base.yml
       service: httpsContainer
  
-    image: "${VERSION_IO_MODULE_BARCODE:-actiwareio/io-module-barcode:3-latest}"
+    image: "${VERSION_IO_MODULE_BARCODE:-ghcr.io/actiware-partner/io-module-barcode:3-latest}"
     environment:
       <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv, *moduleGrpcEnv]
     ports:
@@ -96,7 +96,7 @@ services:
       file: base.yml
       service: httpsContainer
  
-    image: "${VERSION_IO_MODULE_PDF_PROCESSOR:-actiwareio/io-module-pdf-processor:3-latest}"
+    image: "${VERSION_IO_MODULE_PDF_PROCESSOR:-ghcr.io/actiware-partner/io-module-pdf-processor:3-latest}"
     environment:
       <<: [*logEnv, *secureEnv, *identityEnv, *projectEnv, *moduleGrpcEnv]
     ports:

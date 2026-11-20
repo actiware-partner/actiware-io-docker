@@ -45,9 +45,11 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 
 ## Improvements
 
+- Release-Images (`3.x.y`, `3-latest`) kommen aus der privaten Registry `ghcr.io/actiware-partner` statt von Docker Hub. Dafür ist ein `docker login ghcr.io` mit einem Token (`read:packages`) und die Mitgliedschaft im Team `aw-partner-container-registry` nötig, siehe README, Abschnitt „Anmelden an der Registry“. Bestehende `.env`-Dateien mit `actiwareio/...` müssen angepasst werden (IO3-3996)
+
 - Der Project Service kennt den Document Viewer Service und kann dessen Einstellungen aktualisieren
 - S3-Speicher wechselt von MinIO auf Silo (`pgsty/silo`)
-- Container-Images sind über vollständige Image-Angaben konfigurierbar (z.B. `VERSION_IO_SERVICE_IDENTITY=actiwareio/io-identity-service:3-latest`), Standard ist jeweils `3-latest`
+- Container-Images sind über vollständige Image-Angaben konfigurierbar (z.B. `VERSION_IO_SERVICE_IDENTITY=ghcr.io/actiware-partner/io-identity-service:3-latest`), Standard ist jeweils `3-latest`
 - Einheitliche Namen für Docker-Volumes (`postgres-data`, `qdrant-data`, `s3-data`, `weaviate-data`, `redis-data`, `solr-data`)
 - Zertifikate, CA-Zertifikat, Kerberos-Keytab und Importverzeichnis liegen unter festen Pfaden auf dem Host (`/aw/certs`, `/aw/CAs`, `/aw/kerberos`, `/aw/imports`) und sind über `CERT_DIR`, `CA_DIR`, `KERBEROS_KEYTAB_DIR` und `IMPORTS_DIR` anpassbar
 - Healthcheck für Weaviate, Redis speichert seine Daten in einem eigenen Volume

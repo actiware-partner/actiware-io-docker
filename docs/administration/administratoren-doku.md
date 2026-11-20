@@ -96,13 +96,28 @@ docker compose pull
 docker compose up -d
 ```
 
+### Anmelden an der Registry
+
+Die Release-Images (Tags `3.x.y` und `3-latest`) liegen privat in `ghcr.io/actiware-partner`. Zum Herunterladen brauchen Sie:
+
+- Mitgliedschaft im GitHub-Team `aw-partner-container-registry` der Organisation `actiware-partner`
+- ein Token (Personal Access Token classic) mit dem Recht `read:packages`
+
+Melden Sie sich auf jedem Host einmal an. Das Token wird über stdin übergeben, damit es nicht in der Shell-Historie oder in der Prozessliste landet:
+
+```bash
+echo "$GHCR_TOKEN" | docker login ghcr.io -u <github-benutzername> --password-stdin
+```
+
+Danach funktioniert `docker compose pull` mit den Standard-Images. Preview- und Prototyp-Images bleiben in `ghcr.io/actiware-io` und gehören nicht zu den Release-Images.
+
 ### Image-Versionen steuern
 
 Jeder Service-Image-Pfad ist vollständig über eine ENV-Variable in der `.env` steuerbar — inkl. Registry, Image-Name und Tag:
 
 ```dotenv
-# Standard (Docker Hub)
-VERSION_IO_SERVICE_PROJECT=actiwareio/io-project-service:3-latest
+# Standard (ghcr.io/actiware-partner, Anmeldung nötig)
+VERSION_IO_SERVICE_PROJECT=ghcr.io/actiware-partner/io-project-service:3-latest
 
 # Private Registry
 VERSION_IO_SERVICE_PROJECT=myregistry.example.com/io-project-service:3.1.0

@@ -12,7 +12,7 @@ services:
       - SETUID
       - SETGID
 
-    image: "${VERSION_IO_CLIENT_DESIGNER:-actiwareio/io-designer:3-latest}"
+    image: "${VERSION_IO_CLIENT_DESIGNER:-ghcr.io/actiware-partner/io-designer:3-latest}"
     depends_on:
       - io-identity-service
       - io-project-service
@@ -35,7 +35,7 @@ services:
       - SETUID
       - SETGID
 
-    image: "${VERSION_IO_CLIENT_WEB:-actiwareio/io-client:3-latest}"
+    image: "${VERSION_IO_CLIENT_WEB:-ghcr.io/actiware-partner/io-client:3-latest}"
     environment:
       SERVICE__ENDPOINTS__SERVICE__NAME: "Default"
       SERVICE__ENDPOINTS__SERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}012"
@@ -59,7 +59,7 @@ services:
       - SETUID
       - SETGID
 
-    image: "${VERSION_IO_INTEGRATION_CLIENT:-actiwareio/io-integration-client:3-latest}"
+    image: "${VERSION_IO_INTEGRATION_CLIENT:-ghcr.io/actiware-partner/io-integration-client:3-latest}"
     environment:
       SERVICE__ENDPOINTS__SERVICE__NAME: "Default"
       SERVICE__ENDPOINTS__SERVICE__URL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}012"

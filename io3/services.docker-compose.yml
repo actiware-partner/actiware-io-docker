@@ -144,7 +144,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_VAULT:-actiwareio/io-vault-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_VAULT:-ghcr.io/actiware-partner/io-vault-service:3-latest}"
     environment:
       <<:
         [
@@ -180,7 +180,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_IDENTITY:-actiwareio/io-identity-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_IDENTITY:-ghcr.io/actiware-partner/io-identity-service:3-latest}"
     # init is required: without it the healthcheck occasionally times out, leaving behind masses of defunct bash processes
     init: true
     group_add:
@@ -216,7 +216,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_PROJECT:-actiwareio/io-project-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_PROJECT:-ghcr.io/actiware-partner/io-project-service:3-latest}"
     environment:
       <<:
         [
@@ -269,7 +269,7 @@ services:
     extends:
       file: base.yml
       service: httpsContainer
-    image: "${VERSION_IO_SERVICE_OCR:-actiwareio/io-ocr-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_OCR:-ghcr.io/actiware-partner/io-ocr-service:3-latest}"
     environment:
       <<:
         [
@@ -337,7 +337,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_WORKER_QUEUE:-actiwareio/io-worker-queue-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_WORKER_QUEUE:-ghcr.io/actiware-partner/io-worker-queue-service:3-latest}"
     environment:
       <<:
         [
@@ -379,7 +379,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_AI_CHAT:-actiwareio/io-ai-chat-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_AI_CHAT:-ghcr.io/actiware-partner/io-ai-chat-service:3-latest}"
     environment:
       <<:
         [
@@ -430,7 +430,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_WORKFLOW:-actiwareio/io-workflow-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_WORKFLOW:-ghcr.io/actiware-partner/io-workflow-service:3-latest}"
     environment:
       <<:
         [
@@ -492,7 +492,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_DATA_FLOW:-actiwareio/io-data-flow-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_DATA_FLOW:-ghcr.io/actiware-partner/io-data-flow-service:3-latest}"
     environment:
       <<:
         [
@@ -522,7 +522,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_OBJECT_STORAGE:-actiwareio/io-object-storage-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_OBJECT_STORAGE:-ghcr.io/actiware-partner/io-object-storage-service:3-latest}"
     environment:
       <<:
         [
@@ -557,7 +557,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_CLIENT:-actiwareio/io-client-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_CLIENT:-ghcr.io/actiware-partner/io-client-service:3-latest}"
     environment:
       <<:
         [
@@ -591,7 +591,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_BFF_CLIENT:-actiwareio/io-bff-client-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_BFF_CLIENT:-ghcr.io/actiware-partner/io-bff-client-service:3-latest}"
     environment:
       <<:
         [
@@ -636,7 +636,7 @@ services:
     extends:
       file: base.yml
       service: httpsContainer
-    image: "${VERSION_IO_SERVICE_DOCUMENT_VIEWER:-actiwareio/io-document-viewer-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_DOCUMENT_VIEWER:-ghcr.io/actiware-partner/io-document-viewer-service:3-latest}"
     environment:
       <<:
         [
@@ -665,7 +665,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_AI_RAG:-actiwareio/io-ai-rag-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_AI_RAG:-ghcr.io/actiware-partner/io-ai-rag-service:3-latest}"
     environment:
       <<:
         [
@@ -749,7 +749,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_INBOX:-actiwareio/io-inbox-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_INBOX:-ghcr.io/actiware-partner/io-inbox-service:3-latest}"
     environment:
       <<:
         [
@@ -788,7 +788,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_SDK:-actiwareio/io-sdk-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_SDK:-ghcr.io/actiware-partner/io-sdk-service:3-latest}"
     environment:
       <<:
         [
@@ -816,7 +816,7 @@ services:
       file: base.yml
       service: httpsContainer
 
-    image: "${VERSION_IO_SERVICE_AI_AGENT_FUNCTIONS:-actiwareio/io-ai-agent-functions-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_AI_AGENT_FUNCTIONS:-ghcr.io/actiware-partner/io-ai-agent-functions-service:3-latest}"
     environment:
       <<:
         [
@@ -846,7 +846,7 @@ services:
     extends:
       file: base.yml
       service: httpsContainer
-    image: "${VERSION_IO_SERVICE_NOTIFICATION:-actiwareio/io-notification-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_NOTIFICATION:-ghcr.io/actiware-partner/io-notification-service:3-latest}"
     environment:
       <<:
         [
@@ -886,7 +886,7 @@ services:
     extends:
       file: base.yml
       service: httpsContainer
-    image: "${VERSION_IO_SERVICE_DOCS:-actiwareio/io-docs-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_DOCS:-ghcr.io/actiware-partner/io-docs-service:3-latest}"
     environment:
       <<:
         [
@@ -919,7 +919,7 @@ services:
     extends:
       file: base.yml
       service: httpsContainer
-    image: "${VERSION_IO_SERVICE_LOOKUP:-actiwareio/io-lookup-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_LOOKUP:-ghcr.io/actiware-partner/io-lookup-service:3-latest}"
     environment:
       <<:
         [
@@ -949,7 +949,7 @@ services:
     extends:
       file: base.yml
       service: httpsContainer
-    image: "${VERSION_IO_SERVICE_INTEGRATION_FLOW:-actiwareio/io-integration-flow-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_INTEGRATION_FLOW:-ghcr.io/actiware-partner/io-integration-flow-service:3-latest}"
     environment:
       <<:
         [
@@ -988,7 +988,7 @@ services:
     extends:
       file: base.yml
       service: httpsContainer
-    image: "${VERSION_IO_SERVICE_AI_TRANSCRIPTION:-actiwareio/io-ai-transcription-service:3-latest}"
+    image: "${VERSION_IO_SERVICE_AI_TRANSCRIPTION:-ghcr.io/actiware-partner/io-ai-transcription-service:3-latest}"
     environment:
       <<:
         [
@@ -1035,8 +1035,8 @@ services:
   # im internen Netz erreichbar (gRPC 30024, Health 30025).
   # ---------------------------------------------------------------------------
   # io-skill-runner:
-  #   # Variante mit LibreOffice (Word, Excel, PowerPoint umwandeln, PDF erzeugen): actiwareio/io3-skill-runner-office:3-latest
-  #   image: "${VERSION_IO_SKILL_RUNNER:-actiwareio/io3-skill-runner:3-latest}"
+  #   # Variante mit LibreOffice (Word, Excel, PowerPoint umwandeln, PDF erzeugen): ghcr.io/actiware-partner/io3-skill-runner-office:3-latest
+  #   image: "${VERSION_IO_SKILL_RUNNER:-ghcr.io/actiware-partner/io3-skill-runner:3-latest}"
   #   restart: unless-stopped
   #   user: "0:0"
   #   read_only: true
@@ -1083,7 +1083,7 @@ services:
   # # Netzsperre für die Läufe: verwirft im Netz des Runners alle ausgehenden Verbindungen der Arbeitsbereichs-UIDs
   # # 20000-29999. Nach einem Neustart des Runners mit "docker compose up -d" neu erzeugen, sonst nimmt er keine Läufe an.
   # io-skill-runner-netguard:
-  #   image: "${VERSION_IO_SKILL_RUNNER:-actiwareio/io3-skill-runner:3-latest}"
+  #   image: "${VERSION_IO_SKILL_RUNNER:-ghcr.io/actiware-partner/io3-skill-runner:3-latest}"
   #   network_mode: "service:io-skill-runner"
   #   depends_on:
   #     - io-skill-runner

@@ -40,7 +40,24 @@ actiware-io-docker/
 - Docker Engine >= 24.x
 - Docker Compose Plugin >= 2.x
 - Gültige TLS-Zertifikate (selbstsigniert oder CA-signiert)
-- Zugang zur ACTIWARE Container Registry (`actiwareio/` auf Docker Hub)
+- Zugang zur ACTIWARE Container Registry (`ghcr.io/actiware-partner/`, privat, siehe [Anmelden an der Registry](#anmelden-an-der-registry))
+
+---
+
+## Anmelden an der Registry
+
+Die Release-Images (Tags `3.x.y` und `3-latest`) liegen privat in `ghcr.io/actiware-partner`. Zum Herunterladen brauchen Sie:
+
+- Mitgliedschaft im GitHub-Team `aw-partner-container-registry` der Organisation `actiware-partner`
+- ein Token (Personal Access Token classic) mit dem Recht `read:packages`
+
+Melden Sie sich auf jedem Host einmal an. Das Token wird über stdin übergeben, damit es nicht in der Shell-Historie oder in der Prozessliste landet:
+
+```bash
+echo "$GHCR_TOKEN" | docker login ghcr.io -u <github-benutzername> --password-stdin
+```
+
+Danach funktioniert `docker compose pull` mit den Standard-Images. Preview- und Prototyp-Images bleiben in `ghcr.io/actiware-io` und gehören nicht zu den Release-Images.
 
 ---
 
@@ -288,7 +305,7 @@ Der gesamte Image-Pfad inklusive Registry und Tag ist pro Service individuell ko
 
 ```env
 # Beispiel: Standard
-VERSION_IO_SERVICE_IDENTITY=actiwareio/io-identity-service:3-latest
+VERSION_IO_SERVICE_IDENTITY=ghcr.io/actiware-partner/io-identity-service:3-latest
 
 # Beispiel: Private Registry / anderer Tag
 VERSION_IO_SERVICE_IDENTITY=myregistry.example.com/io-identity-service:3.1.0
