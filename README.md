@@ -276,6 +276,7 @@ cp .env.example .env
 | `INSTANCE_PORT_PREFIX` | `30` | Port-Präfix (Prod=30, Test=40) |
 | `INSTANCE_HTTP_TYPE` | `https` | HTTP-Schema |
 | `CLIENT_ID` | `IoClient` | OAuth2 Client-ID |
+| `ADDITIONAL_CLIENT_ORIGINS` | — | Weitere Herkünfte der Clients für CORS und Anmeldung von BFF Client, Project Service und Identity Service, getrennt durch `;`, z. B. eine eigene Domain; Designer, Web-Client und Integration-Client unter `EXTERNALADDRESS` trägt die Vorlage selbst ein, siehe [Herkünfte der Clients](docs/administration/client-herkuenfte.md) |
 | `ADDITIONAL_REDIRECT_URIS` | — | Weitere Anmelde-Rücksprungadressen, getrennt durch `;` (z. B. Edge-Sidebar), siehe [Anmelde-Adressen](docs/administration/anmelde-adressen.md) |
 | `REDIRECT_URI_CHECK` | `enforce` | Prüfung der Anmelde-Adressen; `warn` nur kurzzeitig zur Fehlersuche |
 | `DEFAULT_VALIDITY_PERIOD` | `86400` | Token-Gültigkeit in Sekunden |

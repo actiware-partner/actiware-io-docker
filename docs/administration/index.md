@@ -65,6 +65,11 @@ Die vollständige Schritt-für-Schritt-Anleitung mit allen Variablen, Zertifikat
   - Edge-Sidebar und weitere Adressen ergänzen
   - Warum man die Prüfung nicht abschalten sollte
 
+- [Herkünfte der Clients (CORS)](./client-herkuenfte.md)
+  - Welche Herkünfte BFF Client, Project Service und Identity Service aus dem Browser zulassen
+  - Eigene Kunden-Domain und Edge-Sidebar eintragen (`ADDITIONAL_CLIENT_ORIGINS`)
+  - Mit einer Vorab-Anfrage prüfen
+
 - [Modul-Oberflächen im Client](./modul-oberflaechen.md)
   - Modul-Proxy des BFF einschalten (`MODULE_ORIGIN_TEMPLATE`)
   - Wildcard-DNS und Zertifikat für `*.modules.<EXTERNALADDRESS>`, lokal `*.modules.localhost`

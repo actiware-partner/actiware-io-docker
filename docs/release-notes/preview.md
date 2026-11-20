@@ -23,6 +23,8 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 
 > ⚠️ **Sicherheitsrelevant:** Das Einrichtungsskript `setup.sh` schlägt zufällige Kennwörter und Schlüssel vor und schreibt sie zusätzlich im Klartext in `INSTALLATIONSNACHWEIS.md`. Diese Datei nach dem sicheren Ablegen der Werte löschen.
 
+> ⚠️ **Sicherheitsrelevant:** BFF Client, Project Service und Identity Service beantworten Anfragen aus dem Browser nur noch für die Herkünfte der eigenen Clients (IO3-4004). Die Vorlage leitet sie aus `INSTANCE_HTTP_TYPE`, `EXTERNALADDRESS` und den Client-Ports ab und setzt sie als `SERVICE__CORS__ALLOWEDORIGINS` sowie als SSO-Herkünfte. Eigene Kunden-Domains und die Edge-Sidebar gehören in die neue Variable `ADDITIONAL_CLIENT_ORIGINS`. Beim Update erst diese Vorlage, dann die drei Dienste aktualisieren, siehe „Herkünfte der Clients (CORS)“ (IO3-4011).
+
 ## Features
 
 - Docker-Umgebung für ACTIWARE.IO 3 in zwei getrennten Stacks: `io-backend` für die Infrastruktur (PostgreSQL 18, Redis 8, Solr 9, S3, Qdrant, Weaviate) und `io3` für alle Services, Clients und Module
