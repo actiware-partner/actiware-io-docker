@@ -281,6 +281,8 @@ cp .env.example .env
 | `DEFAULT_VALIDITY_PERIOD` | `86400` | Token-Gültigkeit in Sekunden |
 | `WORKFLOW_ENCRYPTION_KEY_ID` | `kek-1` | Name des Workflow-Schlüssels im Schlüsselring |
 | `TRANSCRIPTION_AUDIT_PSEUDONYM_KEY` | — | Pseudonyme der Benutzer im Audit der AI Transcription; leer: „Person“ |
+| `MODULE_ORIGIN_TEMPLATE` | — | Herkunft eines Moduls für die Modul-Oberflächen im Client, z. B. `https://{module}.modules.<EXTERNALADDRESS>:30012`; braucht Wildcard-DNS und -Zertifikat. Leer: Modul-Oberflächen aus, siehe [Modul-Oberflächen im Client](docs/administration/modul-oberflaechen.md) |
+| `MODULE_PROXY_EXTRA_HOST_ORIGIN` | — | Weitere Herkunft, die Module einbetten darf, z. B. `chrome-extension://<erweiterungs-id>` der Edge-Sidebar |
 | `WORKFLOW_AI_JOBS_ENABLED` | `true` | KI-Aufträge der Workflow-Regeln („KI ausführen“, „KI-Transition“) abarbeiten |
 | `WORKFLOW_REPORT_JOBS_ENABLED` | `true` | Berichts-Aufträge am Ende eines Workflow-Vorgangs abarbeiten |
 | `DATABASE_PORT` | `30432` | PostgreSQL-Port |
@@ -366,7 +368,7 @@ Bei `INSTANCE_PORT_PREFIX=30` (Standard Produktion):
 | `30009` | io-data-flow-service |
 | `30010` | io-object-storage-service |
 | `30011` | io-client-service |
-| `30012` | io-bff-client-service (Web-Einstiegspunkt) |
+| `30012` | io-bff-client-service (Web-Einstiegspunkt; mit Modul-Proxy auch `*.modules.<EXTERNALADDRESS>:30012`) |
 | `30013` | io-ai-rag-service |
 | `30014` | io-inbox-service |
 | `30015` | io-sdk-service |
@@ -381,6 +383,7 @@ Bei `INSTANCE_PORT_PREFIX=30` (Standard Produktion):
 | `30134` | io-module-output-manager |
 | `30201` | io-client-designer |
 | `30202` | io-client-web (Frontend) |
+| `30203` | io-integration-client |
 | `30333` | Qdrant HTTP |
 | `30334` | Qdrant gRPC |
 | `30379` | Redis (TLS) |

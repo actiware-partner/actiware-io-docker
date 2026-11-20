@@ -65,6 +65,11 @@ Die vollständige Schritt-für-Schritt-Anleitung mit allen Variablen, Zertifikat
   - Edge-Sidebar und weitere Adressen ergänzen
   - Warum man die Prüfung nicht abschalten sollte
 
+- [Modul-Oberflächen im Client](./modul-oberflaechen.md)
+  - Modul-Proxy des BFF einschalten (`MODULE_ORIGIN_TEMPLATE`)
+  - Wildcard-DNS und Zertifikat für `*.modules.<EXTERNALADDRESS>`, lokal `*.modules.localhost`
+  - CORS-Fehler der Ticket-Route verstehen und prüfen
+
 - [Große Dateien und Upload-Grenzen](./upload-grenzen.md)
   - Grenzen für Inbox und Objekt-Anhänge im Designer, 0 = unbegrenzt
   - Technische Obergrenze (Standard 50 GiB) über Umgebungsvariablen ändern

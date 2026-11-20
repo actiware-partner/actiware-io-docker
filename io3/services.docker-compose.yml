@@ -619,6 +619,15 @@ services:
       SERVICE__ENDPOINTS__DOCUMENTVIEWER__SHAREDSECRET: "${CLIENT_SECRET}"
       SERVICE__ENDPOINTS__DOCUMENTVIEWER__MODE: "document_viewer"
       SERVICE__ENDPOINTS__DOCUMENTVIEWER__CALLBACKBASEURL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}012"
+      # Modul-Proxy: liefert die Oberflächen der Module im Client (Bereiche, Seitenleiste, Tabs), jedes Modul auf eigener Herkunft.
+      # Siehe docs/administration/modul-oberflaechen.md. MODULE_ORIGIN_TEMPLATE leer = Proxy aus (Ticket-Route antwortet 503 module_proxy_not_configured).
+      MODULEPROXY__MODULEORIGINTEMPLATE: "${MODULE_ORIGIN_TEMPLATE:-}"
+      # Herkünfte, die Module einbetten und Tickets holen dürfen (CORS der Ticket-Route). Ohne Eintrag scheitert der Client schon am Preflight.
+      MODULEPROXY__ALLOWEDHOSTORIGINS__0: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}202"
+      MODULEPROXY__ALLOWEDHOSTORIGINS__1: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}203"
+      MODULEPROXY__ALLOWEDHOSTORIGINS__2: "${MODULE_PROXY_EXTRA_HOST_ORIGIN:-}"
+      # Die Modul-Adressroute des Client Service nimmt nur das Shared Secret an (sonst 503 module_proxy_misconfigured).
+      SERVICE__ENDPOINTS__CLIENTSERVICE__SHAREDSECRET: "${SHARED_SECRET}"
       # Anmeldung mit eigenen Zugangsdaten (OpenID je Benutzer, MCP-Anmeldung): Der Callback des BFF leitet auf diese Seite des Web-Clients zurück.
       # Ohne sie antwortet der Callback mit 503 LOGIN_RETURN_NOT_CONFIGURED. Designer > Maintenance > Services > BFF Client Service ersetzt den Wert.
       USERCREDENTIALS__OAUTH__CLIENTRETURNURL: "${INSTANCE_HTTP_TYPE:-https}://${EXTERNALADDRESS}:${INSTANCE_PORT_PREFIX:-30}202/credential-oauth-callback.html"
