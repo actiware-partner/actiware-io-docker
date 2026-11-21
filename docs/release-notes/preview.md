@@ -15,10 +15,9 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 > beantworten Anfragen aus dem Browser nur noch für bekannte Herkünfte der Programme. Fehlt eine Herkunft, kann sich in
 > Web-Client, Designer und Integration-Client **niemand mehr anmelden**. Die Vorlage trägt die Adressen unter
 > `EXTERNALADDRESS` selbst ein. **Selbst eintragen** müssen Sie eigene Domains, Reverse Proxys, IP-Adressen und
-> Kurznamen, die Edge-Sidebar sowie alle Installationen ohne diese Vorlage (eigene Compose-Dateien, ältere
-> awrun-Umgebungen, Kubernetes): in `ADDITIONAL_CLIENT_ORIGINS` bzw. direkt als `SERVICE__CORS__ALLOWEDORIGINS`. Danach die
+> Kurznamen, die Edge-Sidebar sowie alle Installationen ohne diese Vorlage (eigene Compose-Dateien, Kubernetes): in `ADDITIONAL_CLIENT_ORIGINS` bzw. direkt als `SERVICE__CORS__ALLOWEDORIGINS`. Danach die
 > drei Dienste neu starten, sie lesen die Liste nur beim Start. Checkliste und Beispiele (`host.docker.internal`,
-> `awrun.dt.local`, eigene Domain, Kubernetes) stehen unter „Herkünfte der Clients (CORS)“.
+> eigene Domain, Kubernetes) stehen unter „Herkünfte der Clients (CORS)“.
 
 ## Sicherheitshinweise
 
