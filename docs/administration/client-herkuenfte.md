@@ -23,7 +23,8 @@ wie `has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is
 > - die Edge-Sidebar und lokale Entwicklungs-Server.
 >
 > Gehen Sie vor dem Update die [Checkliste](#vor-dem-update-checkliste) durch und tragen Sie fehlende Herkünfte ein.
-> BFF Client und Project Service lesen die Liste nur beim Start, eine Änderung wirkt erst nach einem Neustart.
+> Alle drei Dienste lesen `SERVICE__CORS__ALLOWEDORIGINS` nur beim Start, eine Änderung wirkt erst nach einem Neustart.
+> Sofort wirken nur die im Designer gespeicherten SSO-Herkünfte des Identity Service.
 
 ## Vor dem Update: Checkliste
 
@@ -197,8 +198,12 @@ Beim Identity Service zusätzlich:
     value: "https://designer.ihre-firma.de;https://io3.ihre-firma.de;https://integration.ihre-firma.de"
 ```
 
-Nach der Änderung die Pods neu starten (`kubectl rollout restart deployment/<name>`), denn BFF Client und Project
-Service lesen die Liste nur beim Start.
+`SERVICE__SSO_ALLOWED_ORIGINS` gilt für die Anmeldung nur, solange in den Dienst-Einstellungen des Identity Service
+keine SSO-Herkünfte gespeichert sind; sonst gilt die gespeicherte Liste, siehe
+[Eigene Kunden-Domain eintragen](#eigene-kunden-domain-eintragen), Schritt 4.
+
+Nach der Änderung die Pods neu starten (`kubectl rollout restart deployment/<name>`), denn alle drei Dienste lesen
+`SERVICE__CORS__ALLOWEDORIGINS` nur beim Start.
 
 ## Wenn sich niemand mehr anmelden kann
 
