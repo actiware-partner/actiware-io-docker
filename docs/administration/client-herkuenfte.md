@@ -19,7 +19,7 @@ wie `has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is
 > Adressen unter `EXTERNALADDRESS` selbst ein. **Nicht von selbst** erfasst werden:
 >
 > - Installationen mit eigener Domain, eigenem Reverse Proxy, IP-Adresse oder Kurznamen,
-> - Installationen ohne diese Vorlage, etwa eigene Compose-Dateien, ältere awrun-Umgebungen oder Kubernetes,
+> - Installationen ohne diese Vorlage, etwa eigene Compose-Dateien oder Kubernetes,
 > - die Edge-Sidebar und lokale Entwicklungs-Server.
 >
 > Gehen Sie vor dem Update die [Checkliste](#vor-dem-update-checkliste) durch und tragen Sie fehlende Herkünfte ein.
@@ -29,8 +29,8 @@ wie `has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is
 ## Vor dem Update: Checkliste
 
 1. **Wie öffnen die Benutzer die Programme?** Notieren Sie für Designer, Web-Client und Integration-Client die Adresse
-   aus der Adresszeile des Browsers, also Schema, Name und Port, ohne Pfad: `https://awrun.dt.local:30202`, nicht
-   `https://awrun.dt.local:30202/#/inbox`. Jede abweichende Schreibweise ist eine eigene Herkunft: Name und IP-Adresse,
+   aus der Adresszeile des Browsers, also Schema, Name und Port, ohne Pfad: `https://host.docker.internal:30202`, nicht
+   `https://host.docker.internal:30202/#/inbox`. Jede abweichende Schreibweise ist eine eigene Herkunft: Name und IP-Adresse,
    Kurzname und vollständiger Name, `http` und `https`, mit und ohne Port.
 2. **Vergleichen Sie mit der abgeleiteten Liste** aus `INSTANCE_HTTP_TYPE`, `EXTERNALADDRESS` und `INSTANCE_PORT_PREFIX`
    (Tabelle im nächsten Abschnitt). Alles, was dort nicht steht, gehört in `ADDITIONAL_CLIENT_ORIGINS`.
@@ -125,6 +125,12 @@ INSTANCE_HTTP_TYPE=https
 ADDITIONAL_CLIENT_ORIGINS=https://localhost:30201;https://localhost:30202;https://localhost:30203
 ```
 
+Dasselbe gilt für die IP-Adresse (`https://127.0.0.1:30202`) oder den Rechnernamen: Jede Schreibweise, unter der der
+Browser die Programme öffnet, gehört in die Liste.
+
+Läuft eine zweite Instanz mit `INSTANCE_PORT_PREFIX=40`, leitet ihre Vorlage `https://host.docker.internal:40201` usw.
+selbst ab; jede Instanz kennt nur ihre eigenen Ports.
+
 Startet jemand Designer oder Client als Entwicklungs-Server (`npm run dev`) gegen diese Container, laufen sie unter
 `http://localhost:5173` (bzw. `:3000`, `:5000`). Diese Adressen lassen die Dienste nur in der Umgebung `Development`
 zu. Laufen die Container nicht in `Development`, tragen Sie die Adresse ein, nur auf dem Entwicklerrechner:
@@ -132,26 +138,6 @@ zu. Laufen die Container nicht in `Development`, tragen Sie die Adresse ein, nur
 ```shell
 ADDITIONAL_CLIENT_ORIGINS=http://localhost:5173
 ```
-
-### Interne Instanz unter `awrun.dt.local`
-
-Eine Test- oder Demo-Instanz im internen Netz, die Benutzer unter `awrun.dt.local` öffnen:
-
-```shell
-EXTERNALADDRESS=awrun.dt.local
-INSTANCE_PORT_PREFIX=30
-INSTANCE_HTTP_TYPE=https
-# Abgeleitet: https://awrun.dt.local:30201, https://awrun.dt.local:30202, https://awrun.dt.local:30203
-```
-
-Erreichen einige Benutzer die Instanz auch über den Kurznamen oder die IP-Adresse, sind das weitere Herkünfte:
-
-```shell
-ADDITIONAL_CLIENT_ORIGINS=https://awrun:30201;https://awrun:30202;https://192.168.10.25:30201;https://192.168.10.25:30202
-```
-
-Läuft auf demselben Rechner eine zweite Instanz mit `INSTANCE_PORT_PREFIX=40`, leitet ihre Vorlage
-`https://awrun.dt.local:40201` usw. selbst ab; jede Instanz kennt nur ihre eigenen Ports.
 
 ### Eigene Domain hinter einem Reverse Proxy
 
@@ -168,7 +154,7 @@ Bei Port 443 steht kein Port in der Herkunft. Dazu gehören die Schritte aus
 
 ### Ohne diese Vorlage (eigene Compose-Dateien, Kubernetes)
 
-Wer die Dienste mit eigenen Compose-Dateien, älteren awrun-Umgebungen, Helm oder Kubernetes-Manifesten betreibt, bekommt
+Wer die Dienste mit eigenen Compose-Dateien, Helm oder Kubernetes-Manifesten betreibt, bekommt
 `ADDITIONAL_CLIENT_ORIGINS` nicht ausgewertet. Setzen Sie die Liste dann direkt an den drei Diensten, getrennt durch
 `;` oder `,`, ohne Pfad und ohne Schrägstrich am Ende:
 
