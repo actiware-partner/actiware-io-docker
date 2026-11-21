@@ -4,10 +4,21 @@ title: Preview (Unreleased)
 
 # Preview (Unreleased)
 
-_Stand: 20.11.2026_
+_Stand: 21.11.2026_
 
 Diese Seite sammelt alle Änderungen seit dem letzten Release (`release-3.0`) bis zum aktuellen Stand.
 Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernommen.
+
+## Vor dem Update unbedingt lesen
+
+> ⚠️ **Breaking Change, Anmeldung kann ausfallen (IO3-4004):** BFF Client, Project Service und Identity Service
+> beantworten Anfragen aus dem Browser nur noch für bekannte Herkünfte der Programme. Fehlt eine Herkunft, kann sich in
+> Web-Client, Designer und Integration-Client **niemand mehr anmelden**. Die Vorlage trägt die Adressen unter
+> `EXTERNALADDRESS` selbst ein. **Selbst eintragen** müssen Sie eigene Domains, Reverse Proxys, IP-Adressen und
+> Kurznamen, die Edge-Sidebar sowie alle Installationen ohne diese Vorlage (eigene Compose-Dateien, ältere
+> awrun-Umgebungen, Kubernetes): in `ADDITIONAL_CLIENT_ORIGINS` bzw. direkt als `SERVICE__CORS__ALLOWEDORIGINS`. Danach die
+> drei Dienste neu starten, sie lesen die Liste nur beim Start. Checkliste und Beispiele (`host.docker.internal`,
+> `awrun.dt.local`, eigene Domain, Kubernetes) stehen unter „Herkünfte der Clients (CORS)“.
 
 ## Sicherheitshinweise
 
