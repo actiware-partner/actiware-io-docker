@@ -411,6 +411,7 @@ services:
           *workflowEnv,
           *integrationFlowEnv,
           *notificationEnv,
+          *clientSrvEnv,
           *webClientPublic,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-ai-chat"
