@@ -60,6 +60,12 @@ Dieselbe Liste geht an zwei Stellen:
 | `SERVICE__CORS__ALLOWEDORIGINS` | BFF Client, Project Service, Identity Service | Browser-Freigabe (CORS) aller Routen |
 | `SERVICE__ENDPOINTS__IDENTITYSERVICE__SSOALLOWEDORIGINS`, `SERVICE__SSO_ALLOWED_ORIGINS` | BFF Client, Project Service bzw. Identity Service | Anmeldung (Single Sign-on) |
 
+Die SSO-Herkünfte des Identity Service (`SERVICE__SSO_ALLOWED_ORIGINS`) enthalten zusätzlich seine eigene Herkunft
+`https://<EXTERNALADDRESS>:30001`. Die Anmeldeseite läuft auf dem Identity Service und schickt das Formular an ihn
+zurück; der Browser setzt dabei den `Origin`-Header. Fehlt die eigene Herkunft, klappt die Anmeldung zwar, das Log des
+Identity Service meldet aber bei jeder Anmeldung `CORS policy execution failed` und
+`Request origin https://…:30001 does not have permission to access the resource`.
+
 Die Desktop-Anwendung läuft unter der festen Herkunft `app://bundle`. Die Dienste lassen sie immer zu, ebenso
 `clientapp.actiware` und `clientapp.elo` der eingebetteten Clients früherer Versionen. Dafür ist nichts einzutragen.
 
@@ -162,7 +168,7 @@ Wer die Dienste mit eigenen Compose-Dateien, Helm oder Kubernetes-Manifesten bet
 | --- | --- |
 | BFF Client | `SERVICE__CORS__ALLOWEDORIGINS` |
 | Project Service | `SERVICE__CORS__ALLOWEDORIGINS` |
-| Identity Service | `SERVICE__CORS__ALLOWEDORIGINS`, für die Anmeldung zusätzlich `SERVICE__SSO_ALLOWED_ORIGINS` |
+| Identity Service | `SERVICE__CORS__ALLOWEDORIGINS`, für die Anmeldung zusätzlich `SERVICE__SSO_ALLOWED_ORIGINS` (mit der eigenen Herkunft des Identity Service) |
 
 Die Dienste lassen außerdem die SSO-Herkünfte zu (`SERVICE__ENDPOINTS__IDENTITYSERVICE__SSOALLOWEDORIGINS` an BFF Client
 und Project Service). Fehlen beide Variablen an einem Dienst, beantwortet er **keine** Browser-Anfrage mehr, außer der
