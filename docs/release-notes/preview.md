@@ -4,7 +4,7 @@ title: Preview (Unreleased)
 
 # Preview (Unreleased)
 
-_Stand: 21.11.2026_
+_Stand: 23.11.2026_
 
 Diese Seite sammelt alle Änderungen seit dem letzten Release (`release-3.0`) bis zum aktuellen Stand.
 Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernommen.
@@ -71,6 +71,7 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 
 ## Bugfixes
 
+- Anmeldung: Die SSO-Herkünfte des Identity Service enthalten jetzt seine eigene Herkunft (`…:30001`). Bisher meldete das Log bei jeder Anmeldung `CORS policy execution failed` für `https://<EXTERNALADDRESS>:30001`, weil die Anmeldeseite ihr Formular an den Identity Service zurückschickt (IO3-4011)
 - Modul-Oberflächen im Client (Bereiche, Seitenleiste, Tabs): Der BFF Client erhält den Modul-Proxy. Die Herkünfte von Web-Client und Integration-Client stehen immer in `MODULEPROXY__ALLOWEDHOSTORIGINS`, dazu `SERVICE__ENDPOINTS__CLIENTSERVICE__SHAREDSECRET`. Bisher scheiterte jede Modul-Oberfläche schon am CORS-Preflight der Ticket-Route („Request origin … does not have permission to access the resource“). Eingeschaltet wird der Proxy über die neue Variable `MODULE_ORIGIN_TEMPLATE` (Wildcard-DNS und -Zertifikat für `*.modules.<EXTERNALADDRESS>`), weitere Herkünfte wie die Edge-Sidebar über `MODULE_PROXY_EXTRA_HOST_ORIGIN`. Beschrieben unter „Modul-Oberflächen im Client“ (IO3-4015)
 - Dienst-Einstellungen (Designer > Maintenance > Services): Alle Services mit Einstellungsseite erhalten den Endpunkt des Project Service (`x-projectEnv`, `SERVICE__ENDPOINTS__PROJECTSERVICE__*`). Bisher holte kein Service seine Einstellungen ab und meldete keinen Ausgangsstand, Felder ohne Standardwert blieben im Designer leer. Der Project Service erhält zusätzlich den Endpunkt des BFF Client (`x-bffClientEnv`), und die Vorlage legt den BFF nicht mehr auf `Http1` fest: Der BFF bietet HTTP/2 selbst an (`Kestrel:EndpointDefaults:Protocols`, IO3-3233), gespeicherte Einstellungen kommen dort sofort per Push an statt erst mit dem nächsten Abruf
 - Anmeldung mit eigenen Zugangsdaten (OpenID je Benutzer, MCP-Anmeldung): Der BFF Client erhält die Rückkehrseite des Web-Clients (`USERCREDENTIALS__OAUTH__CLIENTRETURNURL`), der Vault den MCP-Callback des BFF (`SERVICE__USERCREDENTIALS__MCPCALLBACKURL`) und die Testseite des Designers (`SERVICE__USERCREDENTIALS__TESTLOGINREDIRECTURIS__0`). Bisher endete die Anmeldung mit `LOGIN_RETURN_NOT_CONFIGURED` bzw. `CALLBACK_NOT_CONFIGURED`. Beschrieben unter „Anmelde-Adressen“ (IO3-3180)
