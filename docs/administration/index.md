@@ -75,6 +75,11 @@ Die vollständige Schritt-für-Schritt-Anleitung mit allen Variablen, Zertifikat
   - Wildcard-DNS und Zertifikat für `*.modules.<EXTERNALADDRESS>`, lokal `*.modules.localhost`
   - CORS-Fehler der Ticket-Route verstehen und prüfen
 
+- [Modul-Abhängigkeiten zur Laufzeit](./modul-abhaengigkeiten.md)
+  - Laufzeit im SDK Service einschalten (`MODULE_DEPENDENCY_ENABLED`)
+  - Voraussetzungen: Stand der Dienste, Endpunkt des Project Service, Projekte neu veröffentlichen
+  - Freigaben im Designer erteilen, Entzug wirkt nach spätestens 300 Sekunden
+
 - [Große Dateien und Upload-Grenzen](./upload-grenzen.md)
   - Grenzen für Inbox und Objekt-Anhänge im Designer, 0 = unbegrenzt
   - Technische Obergrenze (Standard 50 GiB) über Umgebungsvariablen ändern

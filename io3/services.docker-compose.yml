@@ -820,11 +820,17 @@ services:
           *s3Env,
           *redisEnv,
           *identityEnv,
+          *projectEnv,
           *vaultEnv,
           *dataFlowEnv,
           *notificationEnv,
         ]
       SERVICE__DATABASE__DATABASE: "${DATABASE_PREFIX:-io3}-backend-sdk"
+      # Modul-Abhängigkeiten zur Laufzeit (Rückkanal 22/23). Aus: jede Anfrage endet mit not_enabled.
+      # Siehe docs/administration/modul-abhaengigkeiten.md.
+      SERVICE__MODULEDEPENDENCY__ENABLED: "${MODULE_DEPENDENCY_ENABLED:-false}"
+      # SERVICE__MODULEDEPENDENCY__REFRESHSECONDS: 60
+      # SERVICE__MODULEDEPENDENCY__MAXAGESECONDS: 300
       KESTREL__ENDPOINTS__HTTPS__PROTOCOLS: "Http2"
     ports:
       - "${INSTANCE_PORT_PREFIX:-30}015:443"

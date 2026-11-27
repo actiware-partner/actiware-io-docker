@@ -4,7 +4,7 @@ title: Preview (Unreleased)
 
 # Preview (Unreleased)
 
-_Stand: 23.11.2026_
+_Stand: 27.11.2026_
 
 Diese Seite sammelt alle Änderungen seit dem letzten Release (`release-3.0`) bis zum aktuellen Stand.
 Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernommen.
@@ -38,6 +38,7 @@ Beim nächsten Release wird der Inhalt in die versionierte Release-Note übernom
 ## Features
 
 - Docker-Umgebung für ACTIWARE.IO 3 in zwei getrennten Stacks: `io-backend` für die Infrastruktur (PostgreSQL 18, Redis 8, Solr 9, S3, Qdrant, Weaviate) und `io3` für alle Services, Clients und Module
+- Modul-Abhängigkeiten zur Laufzeit (IO3-4157): neuer Schalter `MODULE_DEPENDENCY_ENABLED` (`SERVICE__MODULEDEPENDENCY__ENABLED`) am SDK Service, standardmäßig aus. Der SDK Service erhält über `*projectEnv` den Endpunkt des Project Service, den er für die Freigaben braucht. Beschrieben unter „Modul-Abhängigkeiten zur Laufzeit“
 - Interaktives Einrichtungsskript `setup.sh`, das die Eckdaten abfragt und beide `.env`-Dateien erzeugt
 - Anmelde-Adressen für die Redirect-Prüfung des Identity Service, mit eigener Doku-Seite „Anmelde-Adressen“ **[Sicherheit]** (#2)
 - Vektorspeicher Weaviate mit Reranker, standardmäßig mit dem mehrsprachigen Modell `baai-bge-reranker-v2-m3`
@@ -106,3 +107,4 @@ Dieses Preview ersetzt die Docker-Umgebung von ACTIWARE.IO 3 vollständig. Ein U
 - **Identity-Schlüssel:** Bestehende Installationen tragen `IDENTITY_ENCRYPTION_KEY` (nicht leer, keine Mindestlänge; empfohlen ist ein langer, zufälliger Wert, z. B. `openssl rand -hex 32`) vor dem ersten Start des neuen Identity Service in `io3/.env` ein, sonst startet er nicht. Lief er schon ohne eigenen Schlüssel, hat er den `ENCRYPTION_KEY` verwendet; dann diesen Wert eintragen. Danach nicht mehr ändern.
 - **Vault-Schlüssel:** Bestehende Installationen lassen `VAULT_ENCRYPTION_KEY` leer, der Vault verwendet dann weiter den `ENCRYPTION_KEY`. Seine gespeicherten Zugangsdaten sind mit diesem Schlüssel verschlüsselt; ein neuer Wert machte sie unlesbar.
 - **Verschlüsselung sensibler Workflows und AI Transcription:** Vor dem Update `WORKFLOW_ENCRYPTION_KEY`, `WORKFLOW_ENCRYPTION_KEY_ID=kek-1` und `TRANSCRIPTION_ENCRYPTION_KEY` in `io3/.env` setzen (je `openssl rand -base64 32`). Ohne gültigen Schlüssel starten Workflow Service und AI Transcription Service nicht. Wer die KI-Aufträge noch nicht nutzen will, setzt `WORKFLOW_AI_JOBS_ENABLED=false`. Siehe „Verschlüsselung und KI-Aufträge“.
+- **Modul-Abhängigkeiten:** Bestehende `.env`-Dateien brauchen keine Änderung, ohne die Zeile `MODULE_DEPENDENCY_ENABLED` bleibt die Laufzeit aus. Vor dem Einschalten alle Dienste auf einen Stand mit Modul-Abhängigkeiten bringen. Die Migration des SDK Service leert beim Ausrollen die Modul-Konfiguration (`module_config`), deshalb jedes Projekt in jeder Solution neu veröffentlichen, bevor Sie den Schalter setzen. Siehe „Modul-Abhängigkeiten zur Laufzeit“.

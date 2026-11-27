@@ -286,6 +286,7 @@ cp .env.example .env
 | `MODULE_PROXY_EXTRA_HOST_ORIGIN` | — | Weitere Herkunft, die Module einbetten darf, z. B. `chrome-extension://<erweiterungs-id>` der Edge-Sidebar |
 | `WORKFLOW_AI_JOBS_ENABLED` | `true` | KI-Aufträge der Workflow-Regeln („KI ausführen“, „KI-Transition“) abarbeiten |
 | `WORKFLOW_REPORT_JOBS_ENABLED` | `true` | Berichts-Aufträge am Ende eines Workflow-Vorgangs abarbeiten |
+| `MODULE_DEPENDENCY_ENABLED` | `false` | Laufzeit der Modul-Abhängigkeiten im SDK Service, siehe [Modul-Abhängigkeiten](docs/administration/modul-abhaengigkeiten.md) |
 | `DATABASE_PORT` | `30432` | PostgreSQL-Port |
 | `DATABASE_ENCODING` | `UTF8` | Datenbankzeichensatz |
 | `DATABASE_PREFIX` | `io3` | Präfix für alle Datenbanknamen |
