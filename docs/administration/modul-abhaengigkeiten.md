@@ -42,11 +42,12 @@ auskommentiert:
 
 ## Freigaben erteilen und entziehen
 
-Freigaben gibt der Administrator im Designer unter Umgebung › Modules › Abhängigkeiten (Tab „Dependencies“). Ein Entzug wirkt
-zur Laufzeit spätestens nach 300 Sekunden.
+Freigaben gibt der Administrator im Designer unter Umgebung › Modules im Reiter „Dependencies“. Ein Entzug wirkt zur Laufzeit
+spätestens nach `MAXAGESECONDS`, standardmäßig nach 300 Sekunden.
 
-Die Freigaben liegen im Speicher jedes SDK-Service-Prozesses. Betreiben Sie mehrere Instanzen des SDK Service, erreicht eine
-Änderung zunächst nur eine Instanz, die übrigen folgen nach `REFRESHSECONDS`, also standardmäßig nach 60 Sekunden.
+Die Freigaben liegen im Speicher jedes SDK-Service-Prozesses. Betreiben Sie mehrere Instanzen des SDK Service, meldet der
+Project Service eine Änderung sofort an eine Instanz; die übrigen gleichen ihren Stand selbst ab und folgen spätestens nach
+`REFRESHSECONDS`, standardmäßig nach 60 Sekunden.
 
 Die Freigabe ordnet ehrliche Module und ersetzt nicht die Prüfung, ob Sie einem Modul vertrauen. Geben Sie nur Abhängigkeiten
 frei, deren Herkunft Sie kennen.
@@ -59,8 +60,9 @@ frei, deren Herkunft Sie kennen.
    docker compose exec io-sdk-service printenv SERVICE__MODULEDEPENDENCY__ENABLED
    ```
 
-2. Der SDK Service ist nach dem Neustart gestartet. Bricht er sofort ab, prüfen Sie im Log den Endpunkt des Project Service:
+2. Der SDK Service läuft nach dem Neustart. Bricht er sofort ab, nennt das Log den fehlenden Wert
+   (`Service:Endpoints:ProjectService:Url` oder `...:SharedSecret`):
 
    ```bash
-   docker compose logs io-sdk-service | grep -i "ProjectService"
+   docker compose logs io-sdk-service --tail 50
    ```
